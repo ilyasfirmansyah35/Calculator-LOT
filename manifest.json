@@ -1,0 +1,27 @@
+{
+  "name": "XAUUSD Lot Calculator",
+  "short_name": "XAU Calc",
+  "description": "Kalkulator ukuran lot trading emas XAUUSD dengan kurs USD/IDR live",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A12",
+  "theme_color": "#F5C842",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "utilities"],
+  "lang": "id"
+}

@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>XAUUSD Lot Calculator</title>
+  <meta name="description"
+    content="Kalkulator ukuran lot trading emas XAUUSD dengan kurs USD/IDR live. Support USD & Rupiah." />
+  <meta name="theme-color" content="#F5C842" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #F5C842;
+      --gold-light: #FFE57A;
+      --gold-dark: #C49A1A;
+      --bg-dark: #0A0A12;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --border: rgba(245, 200, 66, 0.18);
+      --border-dim: rgba(255, 255, 255, 0.07);
+      --text: #F0F0F0;
+      --text-dim: #8A8A9A;
+      --text-muted: #555568;
+      --green: #00E5A0;
+      --red: #FF5B7A;
+      --blue: #4F9FFF;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow-gold: 0 0 30px rgba(245, 200, 66, 0.15);
+      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(245, 200, 66, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -100px;
+      right: -80px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(79, 159, 255, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0
+    }
+
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 0 0 50px
+    }
+
+    /* HEADER */
+    .header {
+      padding: 48px 20px 20px;
+      text-align: center
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFE57A 0%, #F5C842 50%, #C49A1A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      line-height: 1.2
+    }
+
+    .rate-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 50px;
+      padding: 8px 16px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .3s
+    }
+
+    .rate-badge:hover {
+      border-color: var(--border);
+      color: var(--text)
+    }
+
+    .rate-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .6;
+        transform: scale(.85)
+      }
+    }
+
+    .rate-value {
+      font-weight: 700;
+      color: var(--gold);
+      font-size: 13px
+    }
+
+    /* CARD */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 0 16px 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-card);
+      transition: border-color .3s
+    }
+
+    .card:hover {
+      border-color: rgba(245, 200, 66, 0.12)
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: linear-gradient(to bottom, var(--gold), var(--gold-dark));
+      border-radius: 2px
+    }
+
+    /* CURRENCY */
+    .currency-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    .currency-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-dim);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .25s
+    }
+
+    .currency-btn.active {
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.18), rgba(245, 200, 66, 0.05));
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 20px rgba(245, 200, 66, 0.15)
+    }
+
+    /* INPUTS */
+    .input-group {
+      margin-bottom: 14px
+    }
+
+    .input-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .8px
+    }
+
+    .input-hint {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+      text-transform: none;
+      letter-spacing: 0
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 2
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px 14px 38px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      outline: none;
+      transition: all .25s;
+      appearance: none;
+      -webkit-appearance: none
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--gold);
+      background: rgba(245, 200, 66, 0.04);
+      box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.1)
+    }
+
+    input[type="number"]::placeholder {
+      color: var(--text-muted)
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none
+    }
+
+    /* RISK MODE */
+    .risk-mode-toggle {
+      display: flex;
+      gap: 0;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid var(--border-dim);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 10px
+    }
+
+    .risk-mode-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .risk-mode-btn.active {
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.2), rgba(245, 200, 66, 0.08));
+      color: var(--gold);
+      box-shadow: 0 2px 8px rgba(245, 200, 66, 0.15)
+    }
+
+    /* RISK CHIPS */
+    .risk-quick {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .risk-chip {
+      flex: 1;
+      padding: 7px 4px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-dim);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      text-align: center
+    }
+
+    .risk-chip:hover,
+    .risk-chip.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(245, 200, 66, 0.08)
+    }
+
+    /* BUTTONS */
+    .btn-calc {
+      width: calc(100% - 32px);
+      margin: 4px 16px 14px;
+      padding: 18px;
+      border-radius: var(--radius);
+      border: none;
+      background: linear-gradient(135deg, #F5C842 0%, #C49A1A 100%);
+      color: #0A0A12;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: .5px;
+      transition: all .3s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(245, 200, 66, 0.35)
+    }
+
+    .btn-calc::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      transition: left .5s
+    }
+
+    .btn-calc:hover::before {
+      left: 100%
+    }
+
+    .btn-calc:active {
+      transform: scale(.97);
+      box-shadow: 0 4px 15px rgba(245, 200, 66, 0.25)
+    }
+
+    .btn-calc:disabled {
+      opacity: .6;
+      cursor: not-allowed
+    }
+
+    .btn-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .btn-reset {
+      width: calc(100% - 32px);
+      margin: 0 16px 20px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-dim);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .btn-reset:hover {
+      border-color: var(--red);
+      color: var(--red)
+    }
+
+    /* RESULT */
+    .result-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(245, 200, 66, 0.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin: 0 16px 14px;
+      box-shadow: var(--shadow-gold);
+      animation: slideUp .4s cubic-bezier(.34, 1.56, .64, 1)
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(.97)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+      }
+    }
+
+    .result-card.show {
+      display: block
+    }
+
+    .lot-display {
+      text-align: center;
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--border-dim);
+      margin-bottom: 18px
+    }
+
+    .lot-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px
+    }
+
+    .lot-value {
+      font-size: 58px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFE57A 0%, #F5C842 60%, #C49A1A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      letter-spacing: -2px
+    }
+
+    .lot-unit {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold-dark);
+      margin-top: 4px
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .result-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px
+    }
+
+    .result-item-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 4px
+    }
+
+    .result-item-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text)
+    }
+
+    .result-item-value.red {
+      color: var(--red)
+    }
+
+    .result-item-value.gold {
+      color: var(--gold)
+    }
+
+    .result-item-value.small {
+      font-size: 12px
+    }
+
+    .risk-meter {
+      margin-top: 16px
+    }
+
+    .risk-meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500
+    }
+
+    .risk-bar-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      overflow: hidden
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
+      transition: width .8s cubic-bezier(.34, 1.56, .64, 1);
+      width: 0
+    }
+
+    /* TP */
+    .tp-section {
+      display: none
+    }
+
+    .tp-section.show {
+      display: block
+    }
+
+    .rr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px
+    }
+
+    .rr-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 12px 8px;
+      text-align: center
+    }
+
+    .rr-ratio {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px
+    }
+
+    .rr-value {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--green)
+    }
+
+    /* MESSAGES */
+    .error-box,
+    .success-box {
+      display: none;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin: 0 16px 14px;
+      font-size: 13px;
+      font-weight: 500
+    }
+
+    .error-box {
+      background: rgba(255, 91, 122, 0.08);
+      border: 1px solid rgba(255, 91, 122, 0.25);
+      color: var(--red)
+    }
+
+    .success-box {
+      background: rgba(0, 229, 160, 0.08);
+      border: 1px solid rgba(0, 229, 160, 0.2);
+      color: var(--green)
+    }
+
+    .error-box.show,
+    .success-box.show {
+      display: block;
+      animation: slideUp .3s ease
+    }
+
+    /* HISTORY */
+    .history-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      transition: border-color .2s
+    }
+
+    .history-item:hover {
+      border-color: rgba(245, 200, 66, 0.12)
+    }
+
+    .h-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .h-date {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500
+    }
+
+    .h-cur {
+      font-size: 10px;
+      color: var(--gold);
+      font-weight: 700;
+      background: rgba(245, 200, 66, 0.1);
+      padding: 2px 8px;
+      border-radius: 20px
+    }
+
+    .h-lot {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold);
+      margin: 6px 0 2px
+    }
+
+    .h-info {
+      font-size: 12px;
+      color: var(--text-dim)
+    }
+
+    .empty-history {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px
+    }
+
+    /* FORMULA */
+    .formula-card {
+      background: rgba(79, 159, 255, 0.04);
+      border: 1px solid rgba(79, 159, 255, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 0 16px 14px
+    }
+
+    .formula-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px
+    }
+
+    .formula-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.7
+    }
+
+    .formula-eq {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px
+    }
+
+    /* TABS */
+    .tab-bar {
+      display: flex;
+      margin: 0 16px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 4px
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .tab-btn.active {
+      background: rgba(245, 200, 66, 0.12);
+      color: var(--gold)
+    }
+
+    /* OFFLINE BANNER */
+    .offline-banner {
+      display: none;
+      background: rgba(255, 91, 122, 0.1);
+      border: 1px solid rgba(255, 91, 122, 0.2);
+      border-radius: var(--radius-sm);
+      margin: 0 16px 14px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--red);
+      text-align: center
+    }
+
+    .offline-banner.show {
+      display: block
+    }
+
+    .footer {
+      text-align: center;
+      padding: 0 20px 10px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.7
+    }
+
+    .footer span {
+      color: var(--gold);
+      font-weight: 600
+    }
+
+    /* INSTALL BANNER */
+    .install-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.12), rgba(245, 200, 66, 0.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin: 0 16px 14px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      align-items: center;
+      gap: 10px
+    }
+
+    .install-banner.show {
+      display: flex
+    }
+
+    .install-banner button {
+      margin-left: auto;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--gold);
+      color: #0A0A12;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>XAUUSD<br />Lot Calculator</h1>
+      <div class="rate-badge" onclick="fetchLiveRate()" id="rateBadge">
+        <div class="rate-dot"></div>
+        USD/IDR : <span class="rate-value" id="rateDisplay">Memuat...</span>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 20l7-7 7-7" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- OFFLINE BANNER -->
+    <div class="offline-banner" id="offlineBanner">📵 Offline — menggunakan kurs Rp 15.900 (estimasi)</div>
+
+    <!-- INSTALL PWA BANNER -->
+    <div class="install-banner" id="installBanner">
+      📲 Install aplikasi ini di HP Anda
+      <button onclick="installPWA()">Install</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('calc')">🧮 Kalkulator</button>
+      <button class="tab-btn" onclick="switchTab('history')">📋 Riwayat</button>
+    </div>
+
+    <!-- ═══ TAB: KALKULATOR ═══ -->
+    <div id="tabCalc">
+      <!-- Currency -->
+      <div class="card">
+        <div class="card-title">Mata Uang Akun</div>
+        <div class="currency-toggle">
+          <button class="currency-btn active" id="btnUSD" onclick="setCurrency('USD')"><span>🇺🇸</span> USD</button>
+          <button class="currency-btn" id="btnIDR" onclick="setCurrency('IDR')"><span>🇮🇩</span> IDR – Rupiah</button>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="card">
+        <div class="card-title">Parameter Trading</div>
+        <div class="input-group">
+          <div class="input-label">Modal Akun <span class="input-hint" id="balanceHint">dalam USD</span></div>
+          <div class="input-wrap">
+            <span class="input-prefix" id="balancePrefix">$</span>
+            <input type="number" id="balance" placeholder="0.00" min="0" step="any" />
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Risiko per Trade</div>
+          <div class="risk-mode-toggle">
+            <button class="risk-mode-btn active" id="modePercent" onclick="setRiskMode('percent')">📊 Persentase
+              (%)</button>
+            <button class="risk-mode-btn" id="modeNominal" onclick="setRiskMode('nominal')">💸 Nominal</button>
+          </div>
+          <div id="riskPercentSection">
+            <div class="input-wrap">
+              <span class="input-prefix">%</span>
+              <input type="number" id="riskPercent" placeholder="1.0" min="0.01" max="100" step="0.1" value="1" />
+            </div>
+            <div class="risk-quick">
+              <button class="risk-chip" onclick="setRisk(0.5)">0.5%</button>
+              <button class="risk-chip active" onclick="setRisk(1)">1%</button>
+              <button class="risk-chip" onclick="setRisk(1.5)">1.5%</button>
+              <button class="risk-chip" onclick="setRisk(2)">2%</button>
+              <button class="risk-chip" onclick="setRisk(3)">3%</button>
+            </div>
+          </div>
+          <div id="riskNominalSection" style="display:none">
+            <div class="input-wrap">
+              <span class="input-prefix" id="nominalPrefix">$</span>
+              <input type="number" id="riskNominal" placeholder="100" min="0.01" step="any" />
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">💡 Masukkan jumlah uang yang siap hilang
+              per trade</div>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Stop Loss <span class="input-hint">dalam pips/points</span></div>
+          <div class="input-wrap">
+            <span class="input-prefix">✕</span>
+            <input type="number" id="stopLoss" placeholder="50" min="1" step="1" value="50" />
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <div class="input-label">Harga Entry <span class="input-hint">opsional</span></div>
+          <div class="input-wrap">
+            <span class="input-prefix">@</span>
+            <input type="number" id="entryPrice" placeholder="2650.00" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-calc" id="btnCalc" onclick="calculate()">
+        <div class="btn-inner">
+          <div class="spinner" id="spinner"></div>
+          <span id="btnText">⚡ Hitung Lot Sekarang</span>
+        </div>
+      </button>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <!-- Result -->
+      <div class="result-card" id="resultCard">
+        <div class="lot-display">
+          <div class="lot-label">Ukuran Lot yang Disarankan</div>
+          <div class="lot-value" id="lotDisplay">0.00</div>
+          <div class="lot-unit">Standard Lot</div>
+        </div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="result-item-label">Risiko</div>
+            <div class="result-item-value red" id="riskAmountDisplay">-</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Saldo (USD)</div>
+            <div class="result-item-value gold" id="balanceUSDDisplay">-</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Pip Value/lot</div>
+            <div class="result-item-value" id="pipValueDisplay">$10.00/pip</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Kurs USD/IDR</div>
+            <div class="result-item-value small" id="rateResultDisplay">-</div>
+          </div>
+        </div>
+        <div class="risk-meter">
+          <div class="risk-meter-label"><span>Meter Risiko</span><span id="riskMeterLabel">1%</span></div>
+          <div class="risk-bar-track">
+            <div class="risk-bar-fill" id="riskBarFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TP -->
+      <div class="tp-section card" id="tpSection">
+        <div class="card-title">Target Profit (R:R)</div>
+        <div class="rr-grid">
+          <div class="rr-item">
+            <div class="rr-ratio">1:1 RR</div>
+            <div class="rr-value" id="tp1">-</div>
+          </div>
+          <div class="rr-item">
+            <div class="rr-ratio">1:2 RR</div>
+            <div class="rr-value" id="tp2">-</div>
+          </div>
+          <div class="rr-item">
+            <div class="rr-ratio">1:3 RR</div>
+            <div class="rr-value" id="tp3">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div class="formula-card">
+        <div class="formula-title">ℹ️ Cara Kerja</div>
+        <div class="formula-text">
+          XAUUSD: 1 lot = 100 oz emas &nbsp;|&nbsp; 1 pip = $0.10<br />
+          Pip Value = 100 oz × $0.10 = <strong style="color:var(--gold)">$10 per pip per lot</strong>
+        </div>
+        <div class="formula-eq">Lot = Risiko($) ÷ (Stop Loss × $10/pip)</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+          Contoh: 0.01 lot × 60 pips × $10 = <strong style="color:var(--green)">$6 ≈ Rp 96.000–109.000</strong>
+        </div>
+      </div>
+
+      <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
+    </div>
+
+    <!-- ═══ TAB: RIWAYAT ═══ -->
+    <div id="tabHistory" style="display:none">
+      <div class="card" id="historyList">
+        <div class="card-title">Riwayat Transaksi</div>
+        <div class="empty-history" id="historyEmpty">📭 Belum ada riwayat tersimpan.</div>
+      </div>
+      <button class="btn-reset" onclick="clearHistory()">🗑️ Hapus Semua Riwayat</button>
+    </div>
+
+    <div class="footer">
+      <span>XAUUSD Lot Calculator</span><br />
+      ⚠️ Trading emas mengandung risiko tinggi.
+    </div>
+  </div>
+
+  <script>
+    var currentCurrency = 'USD';
+    var usdIdrRate = 15900;
+    var riskMode = 'percent';
+    var lastResult = null;
+    var deferredPrompt = null;
+    var PIP_VALUE = 10; // XAUUSD: 100oz × $0.10 = $10/pip/lot
+
+    // ── PWA INSTALL ──
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.add('show');
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () {
+        deferredPrompt = null;
+        document.getElementById('installBanner').classList.remove('show');
+      });
+    }
+    window.addEventListener('appinstalled', function () {
+      document.getElementById('installBanner').classList.remove('show');
+    });
+
+    // ── SERVICE WORKER ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(function () { });
+    }
+
+    // ── OFFLINE DETECTION ──
+    function updateOnlineStatus() {
+      document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
+    }
+    window.addEventListener('online', function () { updateOnlineStatus(); fetchLiveRate(); });
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // ── INIT ──
+    window.onload = function () {
+      updateOnlineStatus();
+      fetchLiveRate();
+      renderHistory();
+    };
+
+    // ── LIVE RATE (client-side) ──
+    function fetchLiveRate() {
+      document.getElementById('rateDisplay').textContent = 'Memuat...';
+      fetch('https://open.er-api.com/v6/latest/USD')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d && d.rates && d.rates.IDR) {
+            usdIdrRate = d.rates.IDR;
+            updateRateDisplay();
+          } else throw new Error('no IDR');
+        })
+        .catch(function () {
+          fetch('https://api.frankfurter.app/latest?from=USD&to=IDR')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              usdIdrRate = (d && d.rates && d.rates.IDR) ? d.rates.IDR : 15900;
+              updateRateDisplay();
+            })
+            .catch(function () {
+              usdIdrRate = 15900;
+              updateRateDisplay();
+            });
+        });
+    }
+    function updateRateDisplay() {
+      document.getElementById('rateDisplay').textContent = 'Rp ' + fmt(usdIdrRate, 0);
+    }
+
+    // ── TABS ──
+    function switchTab(tab) {
+      document.getElementById('tabCalc').style.display = tab === 'calc' ? 'block' : 'none';
+      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
+      document.querySelectorAll('.tab-btn').forEach(function (b, i) {
+        b.classList.toggle('active', (i === 0 && tab === 'calc') || (i === 1 && tab === 'history'));
+      });
+      if (tab === 'history') renderHistory();
+    }
+
+    // ── CURRENCY ──
+    function setCurrency(cur) {
+      currentCurrency = cur;
+      document.getElementById('btnUSD').classList.toggle('active', cur === 'USD');
+      document.getElementById('btnIDR').classList.toggle('active', cur === 'IDR');
+      document.getElementById('balancePrefix').textContent = cur === 'USD' ? '$' : 'Rp';
+      document.getElementById('balanceHint').textContent = cur === 'USD' ? 'dalam USD' : 'dalam Rupiah';
+      document.getElementById('nominalPrefix').textContent = cur === 'USD' ? '$' : 'Rp';
+      hideResult();
+    }
+
+    // ── RISK MODE ──
+    function setRiskMode(mode) {
+      riskMode = mode;
+      document.getElementById('modePercent').classList.toggle('active', mode === 'percent');
+      document.getElementById('modeNominal').classList.toggle('active', mode === 'nominal');
+      document.getElementById('riskPercentSection').style.display = mode === 'percent' ? 'block' : 'none';
+      document.getElementById('riskNominalSection').style.display = mode === 'nominal' ? 'block' : 'none';
+      hideResult();
+    }
+
+    // ── RISK CHIPS ──
+    function setRisk(val) {
+      document.getElementById('riskPercent').value = val;
+      document.querySelectorAll('.risk-chip').forEach(function (c) {
+        c.classList.toggle('active', parseFloat(c.textContent) === val);
+      });
+    }
+
+    // ── CALCULATE ──
+    function calculate() {
+      hideMessages();
+      var balance = parseFloat(document.getElementById('balance').value);
+      var sl = parseFloat(document.getElementById('stopLoss').value);
+
+      if (!balance || balance <= 0) { showError('Masukkan modal akun yang valid.'); return; }
+      if (!sl || sl <= 0) { showError('Masukkan nilai Stop Loss yang valid.'); return; }
+
+      var balUSD = currentCurrency === 'IDR' ? balance / usdIdrRate : balance;
+      var riskUSD, riskPct;
+
+      if (riskMode === 'percent') {
+        riskPct = parseFloat(document.getElementById('riskPercent').value);
+        if (!riskPct || riskPct <= 0 || riskPct > 100) { showError('Risiko harus antara 0.01 – 100%.'); return; }
+        riskUSD = balUSD * (riskPct / 100);
+      } else {
+        var nominal = parseFloat(document.getElementById('riskNominal').value);
+        if (!nominal || nominal <= 0) { showError('Masukkan nominal risiko yang valid.'); return; }
+        riskUSD = currentCurrency === 'IDR' ? nominal / usdIdrRate : nominal;
+        riskPct = balUSD > 0 ? (riskUSD / balUSD) * 100 : 0;
+      }
+
+      var lot = Math.floor((riskUSD / (sl * PIP_VALUE)) * 100) / 100;
+
+      var result = {
+        lotSize: lot,
+        riskAmountUSD: riskUSD.toFixed(2),
+        riskAmountDisplay: currentCurrency === 'IDR' ? riskUSD * usdIdrRate : riskUSD,
+        pipValuePerLot: currentCurrency === 'IDR' ? PIP_VALUE * usdIdrRate : PIP_VALUE,
+        balanceUSD: balUSD.toFixed(2),
+        currency: currentCurrency,
+        usdIdrRate: usdIdrRate
+      };
+
+      lastResult = result;
+      displayResult(result, riskPct);
+
+      // Simpan ke localStorage
+      saveToHistory({
+        balance: balance, currency: currentCurrency,
+        riskPct: riskPct.toFixed(2), sl: sl,
+        lot: lot, riskUSD: parseFloat(riskUSD.toFixed(2)),
+        rate: Math.round(usdIdrRate)
+      });
+    }
+
+    function displayResult(res, riskPct) {
+      document.getElementById('lotDisplay').textContent = res.lotSize.toFixed(2);
+
+      var riskStr = res.currency === 'IDR'
+        ? 'Rp ' + fmt(res.riskAmountDisplay, 0)
+        : '$ ' + fmt(parseFloat(res.riskAmountUSD), 2);
+      document.getElementById('riskAmountDisplay').textContent = riskStr;
+      document.getElementById('balanceUSDDisplay').textContent = '$ ' + fmt(parseFloat(res.balanceUSD), 2);
+
+      var pipStr = res.currency === 'IDR'
+        ? 'Rp ' + fmt(res.pipValuePerLot, 0) + '/pip'
+        : '$ ' + parseFloat(res.pipValuePerLot).toFixed(2) + '/pip';
+      document.getElementById('pipValueDisplay').textContent = pipStr;
+      document.getElementById('rateResultDisplay').textContent = 'Rp ' + fmt(res.usdIdrRate, 0);
+
+      var meterPct = Math.min((riskPct / 5) * 100, 100);
+      document.getElementById('riskBarFill').style.width = meterPct + '%';
+      document.getElementById('riskMeterLabel').textContent = parseFloat(riskPct).toFixed(2) + '%';
+
+      document.getElementById('resultCard').classList.add('show');
+
+      document.getElementById('tp1').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 1);
+      document.getElementById('tp2').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 2);
+      document.getElementById('tp3').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 3);
+      document.getElementById('tpSection').classList.add('show');
+
+      setTimeout(function () { document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+    }
+
+    // ── HISTORY (localStorage) ──
+    function saveToHistory(data) {
+      var now = new Date();
+      var dateStr = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' ' +
+        ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+      data.date = dateStr;
+      var history = getHistory();
+      history.unshift(data); // terbaru di atas
+      if (history.length > 50) history = history.slice(0, 50); // max 50 entri
+      localStorage.setItem('xauusd_history', JSON.stringify(history));
+    }
+
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem('xauusd_history')) || []; }
+      catch (e) { return []; }
+    }
+
+    function renderHistory() {
+      var list = document.getElementById('historyList');
+      var title = list.querySelector('.card-title');
+      var empty = document.getElementById('historyEmpty');
+      // Remove old items
+      list.querySelectorAll('.history-item').forEach(function (el) { el.remove(); });
+
+      var history = getHistory();
+      if (history.length === 0) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+
+      history.forEach(function (row) {
+        var div = document.createElement('div');
+        div.className = 'history-item';
+        var cur = row.currency || 'USD';
+        var bal = cur === 'IDR' ? 'Rp ' + fmt(row.balance, 0) : '$' + fmt(row.balance, 2);
+        div.innerHTML =
+          '<div class="h-row"><span class="h-date">' + row.date + '</span><span class="h-cur">' + cur + '</span></div>' +
+          '<div class="h-lot">' + parseFloat(row.lot).toFixed(2) + ' <span style="font-size:14px;font-weight:600;color:var(--gold-dark)">lot</span></div>' +
+          '<div class="h-info">Modal: ' + bal + ' &nbsp;|&nbsp; Risk: ' + row.riskPct + '% &nbsp;|&nbsp; SL: ' + row.sl + ' pips</div>';
+        list.appendChild(div);
+      });
+    }
+
+    function clearHistory() {
+      if (!confirm('Hapus semua riwayat?')) return;
+      localStorage.removeItem('xauusd_history');
+      renderHistory();
+    }
+
+    // ── HELPERS ──
+    function showError(msg) {
+      var e = document.getElementById('errorBox');
+      e.textContent = '⚠️ ' + msg; e.classList.add('show');
+    }
+    function hideMessages() {
+      document.getElementById('errorBox').classList.remove('show');
+    }
+    function hideResult() {
+      document.getElementById('resultCard').classList.remove('show');
+      document.getElementById('tpSection').classList.remove('show');
+      hideMessages();
+    }
+    function resetForm() {
+      document.getElementById('balance').value = '';
+      document.getElementById('riskPercent').value = '1';
+      document.getElementById('riskNominal').value = '';
+      document.getElementById('stopLoss').value = '50';
+      document.getElementById('entryPrice').value = '';
+      lastResult = null;
+      setRiskMode('percent');
+      hideResult();
+      document.querySelectorAll('.risk-chip').forEach(function (c) {
+        c.classList.toggle('active', c.textContent === '1%');
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function fmt(num, dec) {
+      if (dec === 0) return new Intl.NumberFormat('id-ID').format(Math.round(num));
+      return parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+    function formatRisk(riskUSD, cur, rate, mult) {
+      var val = parseFloat(riskUSD) * mult;
+      return cur === 'IDR' ? 'Rp ' + fmt(val * rate, 0) : '$' + fmt(val, 2);
+    }
+  </script>
+</body>
+
+</html>
