@@ -1,47 +1,44 @@
-// XAUUSD Lot Calculator - Service Worker
-const CACHE_NAME = 'xauusd-calc-v1';
-const ASSETS = [
+// Trading Suite PWA — Service Worker v2.0
+var CACHE_NAME = 'trading-suite-v2';
+var STATIC_ASSETS = [
+    './',
     './index.html',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap'
+    './icons/icon-512.png'
 ];
 
-// Install: cache all static assets
-self.addEventListener('install', function (e) {
-    e.waitUntil(
+// Install — cache static assets
+self.addEventListener('install', function (event) {
+    event.waitUntil(
         caches.open(CACHE_NAME).then(function (cache) {
-            return cache.addAll(ASSETS.filter(function (url) {
-                return !url.startsWith('https://fonts'); // fonts dihandle terpisah
-            }));
+            return cache.addAll(STATIC_ASSETS);
         })
     );
     self.skipWaiting();
 });
 
-// Activate: hapus cache lama
-self.addEventListener('activate', function (e) {
-    e.waitUntil(
-        caches.keys().then(function (keys) {
+// Activate — remove old caches
+self.addEventListener('activate', function (event) {
+    event.waitUntil(
+        caches.keys().then(function (names) {
             return Promise.all(
-                keys.filter(function (k) { return k !== CACHE_NAME; })
-                    .map(function (k) { return caches.delete(k); })
+                names.filter(function (n) { return n !== CACHE_NAME; })
+                    .map(function (n) { return caches.delete(n); })
             );
         })
     );
     self.clients.claim();
 });
 
-// Fetch: cache-first untuk asset lokal, network-first untuk API
-self.addEventListener('fetch', function (e) {
-    var url = e.request.url;
+// Fetch — network-first for exchange rate APIs, cache-first for everything else
+self.addEventListener('fetch', function (event) {
+    var url = event.request.url;
 
-    // Selalu network untuk API kurs (biar live)
+    // Exchange rate APIs — always try network first
     if (url.includes('open.er-api.com') || url.includes('frankfurter.app') || url.includes('exchangerate-api.com')) {
-        e.respondWith(
-            fetch(e.request).catch(function () {
-                // Offline: return cached atau nothing
+        event.respondWith(
+            fetch(event.request).catch(function () {
                 return new Response(JSON.stringify({ rates: { IDR: 15900 } }), {
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -50,19 +47,30 @@ self.addEventListener('fetch', function (e) {
         return;
     }
 
-    // Cache-first untuk semua asset lain
-    e.respondWith(
-        caches.match(e.request).then(function (cached) {
+    // Google Fonts & CDN — network-first with cache fallback
+    if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(function (response) {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, clone); });
+                    return response;
+                })
+                .catch(function () { return caches.match(event.request); })
+        );
+        return;
+    }
+
+    // Static app files — cache-first
+    event.respondWith(
+        caches.match(event.request).then(function (cached) {
             if (cached) return cached;
-            return fetch(e.request).then(function (resp) {
-                // Cache response baru untuk asset lokal
-                if (resp && resp.status === 200 && e.request.method === 'GET') {
-                    var cloned = resp.clone();
-                    caches.open(CACHE_NAME).then(function (cache) {
-                        cache.put(e.request, cloned);
-                    });
+            return fetch(event.request).then(function (response) {
+                if (response.ok) {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, clone); });
                 }
-                return resp;
+                return response;
             });
         })
     );

@@ -1,12 +1,12 @@
 {
   "name": "Trading Suite — Kalkulator & Jurnal",
   "short_name": "Trading Suite",
-  "description": "Kalkulator lot XAUUSD & Jurnal Trading dalam satu aplikasi. Support USD & IDR dengan kurs live",
+  "description": "Kalkulator Lot XAUUSD dan Jurnal Trading dalam satu aplikasi. Support USD & IDR.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0A0A12",
+  "background_color": "#090d16",
   "theme_color": "#F5C842",
   "icons": [
     {

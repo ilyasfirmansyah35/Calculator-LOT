@@ -1,1251 +1,1671 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Trading Suite — Kalkulator & Jurnal</title>
-  <meta name="description"
-    content="Kalkulator lot XAUUSD & Jurnal Trading dalam satu aplikasi. Support USD & IDR dengan kurs live." />
-  <meta name="theme-color" content="#F5C842" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet" />
-  <style>
-    :root {
-      --gold: #F5C842;
-      --gold-light: #FFE57A;
-      --gold-dark: #C49A1A;
-      --bg-dark: #0A0A12;
-      --bg-card: rgba(255, 255, 255, 0.04);
-      --border: rgba(245, 200, 66, 0.18);
-      --border-dim: rgba(255, 255, 255, 0.07);
-      --text: #F0F0F0;
-      --text-dim: #8A8A9A;
-      --text-muted: #555568;
-      --green: #00E5A0;
-      --red: #FF5B7A;
-      --blue: #4F9FFF;
-      --radius: 18px;
-      --radius-sm: 12px;
-      --shadow-gold: 0 0 30px rgba(245, 200, 66, 0.15);
-      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent
-    }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-dark);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: -120px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 420px;
-      height: 420px;
-      background: radial-gradient(circle, rgba(245, 200, 66, 0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0
-    }
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: -100px;
-      right: -80px;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(79, 159, 255, 0.08) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0
-    }
-    .app-wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 430px;
-      margin: 0 auto;
-      padding: 0 0 100px
-        /* ruang untuk bottom nav */
-    }
-    /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 430px;
-      background: rgba(10, 10, 18, 0.92);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(245, 200, 66, 0.12);
-      display: flex;
-      z-index: 100;
-      padding: 0 8px;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 4px 12px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      gap: 4px;
-      transition: all .2s;
-      text-decoration: none;
-    }
-    .nav-item:hover .nav-label {
-      color: var(--gold);
-    }
-    .nav-icon {
-      font-size: 22px;
-      line-height: 1;
-      transition: transform .2s;
-    }
-    .nav-item.active .nav-icon {
-      transform: scale(1.15);
-    }
-    .nav-label {
-      font-family: 'Inter', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: .4px;
-      transition: color .2s;
-    }
-    .nav-item.active .nav-label {
-      color: var(--gold);
-    }
-    .nav-pip {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--gold);
-      margin-top: 2px;
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .nav-item.active .nav-pip {
-      opacity: 1;
-    }
-    /* Journal nav item special glow */
-    .nav-item.journal .nav-icon {
-      filter: drop-shadow(0 0 6px rgba(79, 159, 255, 0.6));
-    }
-    .nav-item.journal .nav-label {
-      color: var(--blue);
-    }
-    .nav-item.journal .nav-pip {
-      background: var(--blue);
-      opacity: 1;
-    }
-    /* HEADER */
-    .header {
-      padding: 32px 20px 16px;
-      text-align: center
-    }
-    .header-suite-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .header h1 {
-      font-size: 28px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #FFE57A 0%, #F5C842 50%, #C49A1A 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.5px;
-      line-height: 1.2
-    }
-    .rate-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-dim);
-      border-radius: 50px;
-      padding: 8px 16px;
-      margin-top: 16px;
-      font-size: 12px;
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: all .3s
-    }
-    .rate-badge:hover {
-      border-color: var(--border);
-      color: var(--text)
-    }
-    .rate-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: pulse 2s infinite
-    }
-    @keyframes pulse {
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1)
-      }
-      50% {
-        opacity: .6;
-        transform: scale(.85)
-      }
-    }
-    .rate-value {
-      font-weight: 700;
-      color: var(--gold);
-      font-size: 13px
-    }
-    /* CARD */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin: 0 16px 14px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: var(--shadow-card);
-      transition: border-color .3s
-    }
-    .card:hover {
-      border-color: rgba(245, 200, 66, 0.12)
-    }
-    .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-    .card-title::before {
-      content: '';
-      display: inline-block;
-      width: 3px;
-      height: 14px;
-      background: linear-gradient(to bottom, var(--gold), var(--gold-dark));
-      border-radius: 2px
-    }
-    /* CURRENCY */
-    .currency-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px
-    }
-    .currency-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 13px 12px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-dim);
-      background: transparent;
-      color: var(--text-dim);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .25s
-    }
-    .currency-btn.active {
-      background: linear-gradient(135deg, rgba(245, 200, 66, 0.18), rgba(245, 200, 66, 0.05));
-      border-color: var(--gold);
-      color: var(--gold);
-      box-shadow: 0 0 20px rgba(245, 200, 66, 0.15)
-    }
-    /* INPUTS */
-    .input-group {
-      margin-bottom: 14px
-    }
-    .input-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: .8px
-    }
-    .input-hint {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--text-muted);
-      text-transform: none;
-      letter-spacing: 0
-    }
-    .input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center
-    }
-    .input-prefix {
-      position: absolute;
-      left: 14px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-muted);
-      pointer-events: none;
-      z-index: 2
-    }
-    input[type="number"] {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1.5px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px 14px 38px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      outline: none;
-      transition: all .25s;
-      appearance: none;
-      -webkit-appearance: none
-    }
-    input[type="number"]:focus {
-      border-color: var(--gold);
-      background: rgba(245, 200, 66, 0.04);
-      box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.1)
-    }
-    input[type="number"]::placeholder {
-      color: var(--text-muted)
-    }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none
-    }
-    /* RISK MODE */
-    .risk-mode-toggle {
-      display: flex;
-      gap: 0;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1.5px solid var(--border-dim);
-      border-radius: 10px;
-      padding: 3px;
-      margin-bottom: 10px
-    }
-    .risk-mode-btn {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 7px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s
-    }
-    .risk-mode-btn.active {
-      background: linear-gradient(135deg, rgba(245, 200, 66, 0.2), rgba(245, 200, 66, 0.08));
-      color: var(--gold);
-      box-shadow: 0 2px 8px rgba(245, 200, 66, 0.15)
-    }
-    /* RISK CHIPS */
-    .risk-quick {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px
-    }
-    .risk-chip {
-      flex: 1;
-      padding: 7px 4px;
-      border-radius: 8px;
-      border: 1.5px solid var(--border-dim);
-      background: transparent;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-      text-align: center
-    }
-    .risk-chip:hover,
-    .risk-chip.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: rgba(245, 200, 66, 0.08)
-    }
-    /* BUTTONS */
-    .btn-calc {
-      width: calc(100% - 32px);
-      margin: 4px 16px 14px;
-      padding: 18px;
-      border-radius: var(--radius);
-      border: none;
-      background: linear-gradient(135deg, #F5C842 0%, #C49A1A 100%);
-      color: #0A0A12;
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      letter-spacing: .5px;
-      transition: all .3s;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 30px rgba(245, 200, 66, 0.35)
-    }
-    .btn-calc::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-      transition: left .5s
-    }
-    .btn-calc:hover::before {
-      left: 100%
-    }
-    .btn-calc:active {
-      transform: scale(.97);
-      box-shadow: 0 4px 15px rgba(245, 200, 66, 0.25)
-    }
-    .btn-calc:disabled {
-      opacity: .6;
-      cursor: not-allowed
-    }
-    .btn-inner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px
-    }
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(0, 0, 0, 0.2);
-      border-top-color: #000;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      display: none
-    }
-    @keyframes spin {
-      to {
-        transform: rotate(360deg)
-      }
-    }
-    .btn-reset {
-      width: calc(100% - 32px);
-      margin: 0 16px 20px;
-      padding: 14px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-dim);
-      background: transparent;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s
-    }
-    .btn-reset:hover {
-      border-color: var(--red);
-      color: var(--red)
-    }
-    /* RESULT */
-    .result-card {
-      display: none;
-      background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(245, 200, 66, 0.02));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      margin: 0 16px 14px;
-      box-shadow: var(--shadow-gold);
-      animation: slideUp .4s cubic-bezier(.34, 1.56, .64, 1)
-    }
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(.97)
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1)
-      }
-    }
-    .result-card.show {
-      display: block
-    }
-    .lot-display {
-      text-align: center;
-      padding: 20px 0 16px;
-      border-bottom: 1px solid var(--border-dim);
-      margin-bottom: 18px
-    }
-    .lot-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px
-    }
-    .lot-value {
-      font-size: 58px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #FFE57A 0%, #F5C842 60%, #C49A1A 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1;
-      letter-spacing: -2px
-    }
-    .lot-unit {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--gold-dark);
-      margin-top: 4px
-    }
-    .result-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px
-    }
-    .result-item {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px
-    }
-    .result-item-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      margin-bottom: 4px
-    }
-    .result-item-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text)
-    }
-    .result-item-value.red {
-      color: var(--red)
-    }
-    .result-item-value.gold {
-      color: var(--gold)
-    }
-    .result-item-value.small {
-      font-size: 12px
-    }
-    .risk-meter {
-      margin-top: 16px
-    }
-    .risk-meter-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      font-weight: 500
-    }
-    .risk-bar-track {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      overflow: hidden
-    }
-    .risk-bar-fill {
-      height: 100%;
-      border-radius: 10px;
-      background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
-      transition: width .8s cubic-bezier(.34, 1.56, .64, 1);
-      width: 0
-    }
-    /* TP */
-    .tp-section {
-      display: none
-    }
-    .tp-section.show {
-      display: block
-    }
-    .rr-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px
-    }
-    .rr-item {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      padding: 12px 8px;
-      text-align: center
-    }
-    .rr-ratio {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 4px
-    }
-    .rr-value {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--green)
-    }
-    /* MESSAGES */
-    .error-box,
-    .success-box {
-      display: none;
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      margin: 0 16px 14px;
-      font-size: 13px;
-      font-weight: 500
-    }
-    .error-box {
-      background: rgba(255, 91, 122, 0.08);
-      border: 1px solid rgba(255, 91, 122, 0.25);
-      color: var(--red)
-    }
-    .success-box {
-      background: rgba(0, 229, 160, 0.08);
-      border: 1px solid rgba(0, 229, 160, 0.2);
-      color: var(--green)
-    }
-    .error-box.show,
-    .success-box.show {
-      display: block;
-      animation: slideUp .3s ease
-    }
-    /* HISTORY */
-    .history-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      transition: border-color .2s
-    }
-    .history-item:hover {
-      border-color: rgba(245, 200, 66, 0.12)
-    }
-    .h-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center
-    }
-    .h-date {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 500
-    }
-    .h-cur {
-      font-size: 10px;
-      color: var(--gold);
-      font-weight: 700;
-      background: rgba(245, 200, 66, 0.1);
-      padding: 2px 8px;
-      border-radius: 20px
-    }
-    .h-lot {
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--gold);
-      margin: 6px 0 2px
-    }
-    .h-info {
-      font-size: 12px;
-      color: var(--text-dim)
-    }
-    .empty-history {
-      text-align: center;
-      padding: 24px 0;
-      color: var(--text-muted);
-      font-size: 13px
-    }
-    /* FORMULA */
-    .formula-card {
-      background: rgba(79, 159, 255, 0.04);
-      border: 1px solid rgba(79, 159, 255, 0.12);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      margin: 0 16px 14px
-    }
-    .formula-title {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--blue);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 8px
-    }
-    .formula-text {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.7
-    }
-    .formula-eq {
-      font-size: 12px;
-      color: var(--text-dim);
-      font-weight: 600;
-      margin-top: 6px;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 8px
-    }
-    /* TABS */
-    .tab-bar {
-      display: flex;
-      margin: 0 16px 14px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      padding: 4px
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px 8px;
-      border-radius: 9px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s
-    }
-    .tab-btn.active {
-      background: rgba(245, 200, 66, 0.12);
-      color: var(--gold)
-    }
-    /* OFFLINE BANNER */
-    .offline-banner {
-      display: none;
-      background: rgba(255, 91, 122, 0.1);
-      border: 1px solid rgba(255, 91, 122, 0.2);
-      border-radius: var(--radius-sm);
-      margin: 0 16px 14px;
-      padding: 10px 14px;
-      font-size: 12px;
-      color: var(--red);
-      text-align: center
-    }
-    .offline-banner.show {
-      display: block
-    }
-    .footer {
-      text-align: center;
-      padding: 0 20px 10px;
-      color: var(--text-muted);
-      font-size: 11px;
-      line-height: 1.7
-    }
-    .footer span {
-      color: var(--gold);
-      font-weight: 600
-    }
-    /* INSTALL BANNER */
-    .install-banner {
-      display: none;
-      background: linear-gradient(135deg, rgba(245, 200, 66, 0.12), rgba(245, 200, 66, 0.04));
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      margin: 0 16px 14px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: var(--text-dim);
-      align-items: center;
-      gap: 10px
-    }
-    .install-banner.show {
-      display: flex
-    }
-    .install-banner button {
-      margin-left: auto;
-      padding: 7px 14px;
-      border-radius: 8px;
-      border: none;
-      background: var(--gold);
-      color: #0A0A12;
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>Trading Suite — Kalkulator &amp; Jurnal</title>
+    <meta name="description"
+        content="Kalkulator Lot XAUUSD dan Jurnal Trading dalam satu aplikasi. Support USD & IDR dengan kurs live." />
+    <meta name="theme-color" content="#F5C842" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --gold: #F5C842;
+            --gold-light: #FFE57A;
+            --gold-dark: #C49A1A;
+            --indigo: #6366f1;
+            --indigo-dark: #4f46e5;
+            --indigo-glow: rgba(99, 102, 241, .3);
+            --green: #10b981;
+            --red: #f43f5e;
+            --blue: #4F9FFF;
+            --amber: #f59e0b;
+            --bg: #090d16;
+            --bg-card: rgba(255, 255, 255, .04);
+            --bg-card2: rgba(255, 255, 255, .07);
+            --border: rgba(255, 255, 255, .08);
+            --border-gold: rgba(245, 200, 66, .2);
+            --text: #F1F5F9;
+            --text-dim: #94A3B8;
+            --text-muted: #475569;
+            --nav-h: 68px;
+            --radius: 18px;
+            --radius-sm: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, .45);
+            --shadow-gold: 0 0 30px rgba(245, 200, 66, .15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(245, 200, 66, .08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0
+        }
+
+        /* ── PAGES ── */
+        .page-container {
+            position: fixed;
+            inset: 0;
+            bottom: var(--nav-h);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            z-index: 1
+        }
+
+        .page {
+            display: none;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 0 0 24px
+        }
+
+        .page.active {
+            display: block
+        }
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-h);
+            background: rgba(9, 13, 22, .95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom, 0)
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 10px 4px;
+            transition: all .2s;
+            text-decoration: none
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            line-height: 1;
+            transition: transform .25s
+        }
+
+        .nav-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: .3px;
+            transition: color .2s
+        }
+
+        .nav-pip {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--gold);
+            margin-top: 2px;
+            opacity: 0;
+            transition: opacity .2s
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15)
+        }
+
+        .nav-item.active .nav-label {
+            color: var(--gold)
+        }
+
+        .nav-item.active .nav-pip {
+            opacity: 1
+        }
+
+        .nav-item.journal .nav-label {
+            color: var(--indigo)
+        }
+
+        .nav-item.journal .nav-pip {
+            background: var(--indigo);
+            opacity: 1
+        }
+
+        .nav-item.journal .nav-icon {
+            filter: drop-shadow(0 0 6px rgba(99, 102, 241, .5))
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            padding: 44px 20px 20px;
+            text-align: center
+        }
+
+        .suite-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px
+        }
+
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFE57A 0%, #F5C842 50%, #C49A1A 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -.5px;
+            line-height: 1.2
+        }
+
+        .rate-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 8px 16px;
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .rate-badge:hover {
+            border-color: var(--border-gold);
+            color: var(--text)
+        }
+
+        .rate-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .6;
+                transform: scale(.85)
+            }
+        }
+
+        .rate-value {
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 13px
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 0 16px 14px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            transition: border-color .3s
+        }
+
+        .card:hover {
+            border-color: rgba(245, 200, 66, .1)
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 14px;
+            background: linear-gradient(to bottom, var(--gold), var(--gold-dark));
+            border-radius: 2px
+        }
+
+        /* ── CURRENCY ── */
+        .currency-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .currency-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 12px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s
+        }
+
+        .currency-btn.active {
+            background: linear-gradient(135deg, rgba(245, 200, 66, .18), rgba(245, 200, 66, .05));
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 20px rgba(245, 200, 66, .15)
+        }
+
+        /* ── INPUTS ── */
+        .input-group {
+            margin-bottom: 14px
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .input-hint {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+            text-transform: none;
+            letter-spacing: 0
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            pointer-events: none;
+            z-index: 2
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: rgba(255, 255, 255, .04);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px 14px 38px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+            transition: all .25s;
+            appearance: none;
+            -webkit-appearance: none
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--gold);
+            background: rgba(245, 200, 66, .04);
+            box-shadow: 0 0 0 3px rgba(245, 200, 66, .1)
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-muted)
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none
+        }
+
+        /* ── RISK MODE ── */
+        .risk-mode-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, .04);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 10px
+        }
+
+        .risk-mode-btn {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .risk-mode-btn.active {
+            background: linear-gradient(135deg, rgba(245, 200, 66, .2), rgba(245, 200, 66, .08));
+            color: var(--gold);
+            box-shadow: 0 2px 8px rgba(245, 200, 66, .15)
+        }
+
+        /* ── CHIPS ── */
+        .risk-quick {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px
+        }
+
+        .risk-chip {
+            flex: 1;
+            padding: 7px 4px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center
+        }
+
+        .risk-chip:hover,
+        .risk-chip.active {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(245, 200, 66, .08)
+        }
+
+        /* ── BUTTONS ── */
+        .btn-calc {
+            width: calc(100% - 32px);
+            margin: 4px 16px 14px;
+            padding: 18px;
+            border-radius: var(--radius);
+            border: none;
+            background: linear-gradient(135deg, #F5C842 0%, #C49A1A 100%);
+            color: #0A0A12;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(245, 200, 66, .35)
+        }
+
+        .btn-calc::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent);
+            transition: left .5s
+        }
+
+        .btn-calc:hover::before {
+            left: 100%
+        }
+
+        .btn-calc:active {
+            transform: scale(.97)
+        }
+
+        .btn-calc:disabled {
+            opacity: .6;
+            cursor: not-allowed
+        }
+
+        .btn-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0, 0, 0, .2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .btn-reset {
+            width: calc(100% - 32px);
+            margin: 0 16px 20px;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .btn-reset:hover {
+            border-color: var(--red);
+            color: var(--red)
+        }
+
+        /* ── RESULT ── */
+        .result-card {
+            display: none;
+            background: linear-gradient(135deg, rgba(245, 200, 66, .08), rgba(245, 200, 66, .02));
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin: 0 16px 14px;
+            box-shadow: var(--shadow-gold);
+            animation: slideUp .4s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: none scale(1)
+            }
+        }
+
+        .result-card.show {
+            display: block
+        }
+
+        .lot-display {
+            text-align: center;
+            padding: 18px 0 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px
+        }
+
+        .lot-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px
+        }
+
+        .lot-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 58px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFE57A 0%, #F5C842 60%, #C49A1A 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            letter-spacing: -2px
+        }
+
+        .lot-unit {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gold-dark);
+            margin-top: 4px
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px
+        }
+
+        .result-item-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 4px
+        }
+
+        .result-item-value {
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .c-red {
+            color: var(--red)
+        }
+
+        .c-gold {
+            color: var(--gold)
+        }
+
+        .c-small {
+            font-size: 12px
+        }
+
+        .risk-meter {
+            margin-top: 14px
+        }
+
+        .risk-meter-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500
+        }
+
+        .risk-bar-track {
+            height: 6px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 10px;
+            overflow: hidden
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
+            transition: width .8s cubic-bezier(.34, 1.56, .64, 1);
+            width: 0
+        }
+
+        /* ── TP ── */
+        .tp-section {
+            display: none
+        }
+
+        .tp-section.show {
+            display: block
+        }
+
+        .rr-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px
+        }
+
+        .rr-item {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 8px;
+            text-align: center
+        }
+
+        .rr-ratio {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px
+        }
+
+        .rr-value {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--green)
+        }
+
+        /* ── FORMULA ── */
+        .formula-card {
+            background: rgba(79, 159, 255, .04);
+            border: 1px solid rgba(79, 159, 255, .12);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin: 0 16px 14px
+        }
+
+        .formula-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--blue);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px
+        }
+
+        .formula-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.7
+        }
+
+        .formula-eq {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, .04);
+            border-radius: 8px
+        }
+
+        /* ── MESSAGES ── */
+        .error-box {
+            display: none;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin: 0 16px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(244, 63, 94, .08);
+            border: 1px solid rgba(244, 63, 94, .25);
+            color: var(--red)
+        }
+
+        .error-box.show {
+            display: block;
+            animation: slideUp .3s ease
+        }
+
+        /* ── HOME PAGE ── */
+        .home-hero {
+            padding: 44px 20px 24px;
+            text-align: center
+        }
+
+        .home-hero h1 {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFE57A 0%, #F5C842 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            letter-spacing: -.5px;
+            margin-bottom: 8px
+        }
+
+        .home-hero p {
+            font-size: 13px;
+            color: var(--text-dim)
+        }
+
+        .app-launcher-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px;
+            margin-bottom: 14px
+        }
+
+        .app-launcher {
+            border-radius: var(--radius);
+            padding: 22px 16px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-card);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            transition: all .3s
+        }
+
+        .app-launcher:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow)
+        }
+
+        .app-launcher.gold {
+            border-color: rgba(245, 200, 66, .3);
+            background: linear-gradient(135deg, rgba(245, 200, 66, .08), var(--bg-card))
+        }
+
+        .app-launcher.gold:hover {
+            border-color: var(--gold);
+            box-shadow: var(--shadow-gold)
+        }
+
+        .app-launcher.indigo {
+            border-color: rgba(99, 102, 241, .3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, .08), var(--bg-card))
+        }
+
+        .app-launcher.indigo:hover {
+            border-color: var(--indigo);
+            box-shadow: 0 0 30px var(--indigo-glow)
+        }
+
+        .launcher-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block
+        }
+
+        .launcher-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 4px
+        }
+
+        .launcher-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5
+        }
+
+        .gold .launcher-title {
+            color: var(--gold)
+        }
+
+        .indigo .launcher-title {
+            color: #a5b4fc
+        }
+
+        .home-stats-card {
+            margin: 0 16px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px
+        }
+
+        .home-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .home-stat-row:last-child {
+            border-bottom: none
+        }
+
+        .home-stat-label {
+            font-size: 12px;
+            color: var(--text-dim)
+        }
+
+        .home-stat-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold)
+        }
+
+        /* ── JOURNAL PAGE ── */
+        .journal-launch-card {
+            margin: 0 16px 14px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+            border: 1.5px solid rgba(99, 102, 241, .35);
+            background: linear-gradient(135deg, rgba(99, 102, 241, .12) 0%, rgba(79, 70, 229, .05) 100%)
+        }
+
+        .journal-launch-inner {
+            padding: 28px 24px
+        }
+
+        .journal-launch-card::before {
+            content: '';
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, .18) 0%, transparent 70%);
+            pointer-events: none
+        }
+
+        .jl-icon {
+            font-size: 44px;
+            margin-bottom: 16px;
+            display: block;
+            filter: drop-shadow(0 0 12px rgba(99, 102, 241, .6))
+        }
+
+        .jl-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #a5b4fc;
+            margin-bottom: 8px
+        }
+
+        .jl-desc {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 20px
+        }
+
+        .btn-journal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .3s;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, .35)
+        }
+
+        .btn-journal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, .45)
+        }
+
+        .jl-feature-list {
+            margin: 0 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .jl-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm)
+        }
+
+        .jl-feature-icon {
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .jl-feature-text {
+            font-size: 12px;
+            color: var(--text-dim)
+        }
+
+        .jl-feature-text strong {
+            display: block;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 2px
+        }
+
+        /* ── HISTORY ── */
+        .history-item {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            margin-bottom: 8px
+        }
+
+        .h-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .h-date {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500
+        }
+
+        .h-cur {
+            font-size: 10px;
+            color: var(--gold);
+            font-weight: 700;
+            background: rgba(245, 200, 66, .1);
+            padding: 2px 8px;
+            border-radius: 20px
+        }
+
+        .h-lot {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--gold);
+            margin: 6px 0 2px
+        }
+
+        .h-info {
+            font-size: 12px;
+            color: var(--text-dim)
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--text-muted);
+            font-size: 13px
+        }
+
+        /* ── INSTALL / OFFLINE BANNER ── */
+        .install-banner {
+            display: none;
+            background: linear-gradient(135deg, rgba(245, 200, 66, .12), rgba(245, 200, 66, .04));
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            margin: 0 16px 14px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-dim);
+            align-items: center;
+            gap: 10px
+        }
+
+        .install-banner.show {
+            display: flex
+        }
+
+        .install-banner button {
+            margin-left: auto;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--gold);
+            color: #0A0A12;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .offline-banner {
+            display: none;
+            background: rgba(244, 63, 94, .1);
+            border: 1px solid rgba(244, 63, 94, .2);
+            border-radius: var(--radius-sm);
+            margin: 0 16px 14px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--red);
+            text-align: center
+        }
+
+        .offline-banner.show {
+            display: block
+        }
+
+        .footer {
+            text-align: center;
+            padding: 8px 20px 4px;
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.7
+        }
+
+        .footer span {
+            color: var(--gold);
+            font-weight: 600
+        }
+    </style>
 </head>
+
 <body>
-  <div class="app-wrapper">
-    <!-- HEADER -->
-    <div class="header">
-      <div class="header-suite-label">⚡ Trading Suite</div>
-      <h1>Kalkulator &amp; Jurnal</h1>
-      <div class="rate-badge" onclick="fetchLiveRate()" id="rateBadge">
-        <div class="rate-dot"></div>
-        USD/IDR : <span class="rate-value" id="rateDisplay">Memuat...</span>
-        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 20l7-7 7-7" />
-        </svg>
-      </div>
-    </div>
-    <!-- OFFLINE BANNER -->
-    <div class="offline-banner" id="offlineBanner">📵 Offline — menggunakan kurs Rp 15.900 (estimasi)</div>
-    <!-- INSTALL PWA BANNER -->
-    <div class="install-banner" id="installBanner">
-      📲 Install aplikasi ini di HP Anda
-      <button onclick="installPWA()">Install</button>
-    </div>
-    <!-- TABS -->
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('calc')">🧮 Kalkulator</button>
-      <button class="tab-btn" onclick="switchTab('history')">📋 Riwayat</button>
-    </div>
-    <!-- ═══ TAB: KALKULATOR ═══ -->
-    <div id="tabCalc">
-      <!-- Currency -->
-      <div class="card">
-        <div class="card-title">Mata Uang Akun</div>
-        <div class="currency-toggle">
-          <button class="currency-btn active" id="btnUSD" onclick="setCurrency('USD')"><span>🇺🇸</span> USD</button>
-          <button class="currency-btn" id="btnIDR" onclick="setCurrency('IDR')"><span>🇮🇩</span> IDR – Rupiah</button>
-        </div>
-      </div>
-      <!-- Inputs -->
-      <div class="card">
-        <div class="card-title">Parameter Trading</div>
-        <div class="input-group">
-          <div class="input-label">Modal Akun <span class="input-hint" id="balanceHint">dalam USD</span></div>
-          <div class="input-wrap">
-            <span class="input-prefix" id="balancePrefix">$</span>
-            <input type="number" id="balance" placeholder="0.00" min="0" step="any" />
-          </div>
-        </div>
-        <div class="input-group">
-          <div class="input-label">Risiko per Trade</div>
-          <div class="risk-mode-toggle">
-            <button class="risk-mode-btn active" id="modePercent" onclick="setRiskMode('percent')">📊 Persentase
-              (%)</button>
-            <button class="risk-mode-btn" id="modeNominal" onclick="setRiskMode('nominal')">💸 Nominal</button>
-          </div>
-          <div id="riskPercentSection">
-            <div class="input-wrap">
-              <span class="input-prefix">%</span>
-              <input type="number" id="riskPercent" placeholder="1.0" min="0.01" max="100" step="0.1" value="1" />
+
+    <div class="page-container">
+
+        <!-- ═══════════════ PAGE: BERANDA ═══════════════ -->
+        <div class="page active" id="pageHome">
+            <div class="home-hero">
+                <div class="suite-label">⚡ Trading Suite</div>
+                <h1>Kalkulator &amp;<br />Jurnal Trading</h1>
+                <p>Semua tools trading Anda dalam satu aplikasi</p>
             </div>
-            <div class="risk-quick">
-              <button class="risk-chip" onclick="setRisk(0.5)">0.5%</button>
-              <button class="risk-chip active" onclick="setRisk(1)">1%</button>
-              <button class="risk-chip" onclick="setRisk(1.5)">1.5%</button>
-              <button class="risk-chip" onclick="setRisk(2)">2%</button>
-              <button class="risk-chip" onclick="setRisk(3)">3%</button>
+
+            <div class="install-banner" id="installBanner">
+                📲 Install di HP Anda
+                <button onclick="installPWA()">Install</button>
             </div>
-          </div>
-          <div id="riskNominalSection" style="display:none">
-            <div class="input-wrap">
-              <span class="input-prefix" id="nominalPrefix">$</span>
-              <input type="number" id="riskNominal" placeholder="100" min="0.01" step="any" />
+            <div class="offline-banner" id="offlineBanner">📵 Offline — kurs estimasi Rp 15.900</div>
+
+            <!-- Live Rate -->
+            <div style="text-align:center;margin-bottom:16px">
+                <div class="rate-badge" onclick="fetchLiveRate()" id="rateBadgeHome">
+                    <div class="rate-dot"></div>
+                    USD/IDR : <span class="rate-value" id="rateDisplayHome">Memuat...</span>
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 20l7-7 7-7" />
+                    </svg>
+                </div>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">💡 Masukkan jumlah uang yang siap hilang
-              per trade</div>
-          </div>
+
+            <!-- App Launchers -->
+            <div class="app-launcher-grid">
+                <a class="app-launcher gold" onclick="navTo('calc');return false;" href="#">
+                    <span class="launcher-icon">🧮</span>
+                    <div class="launcher-title">Kalkulator Lot</div>
+                    <div class="launcher-desc">XAUUSD · USD & IDR · Pip $10/lot</div>
+                </a>
+                <a class="app-launcher indigo"
+                    href="https://script.google.com/macros/s/AKfycbzGArY0sAwdEM-3-nTWhIAPDsOY4pxnksyZwl3F6kRSIcaEqayloFh_5Xnaszlar0ff8g/exec"
+                    target="_blank" rel="noopener">
+                    <span class="launcher-icon">📊</span>
+                    <div class="launcher-title">Jurnal Trading</div>
+                    <div class="launcher-desc">Dashboard · Riwayat · Statistik</div>
+                </a>
+            </div>
+
+            <!-- Quick Calc Stats -->
+            <div class="home-stats-card" id="homeStats">
+                <div class="card-title" style="margin-bottom:12px">📈 Statistik Kalkulator</div>
+                <div class="home-stat-row">
+                    <span class="home-stat-label">Total Kalkulasi</span>
+                    <span class="home-stat-val" id="statTotal">0</span>
+                </div>
+                <div class="home-stat-row">
+                    <span class="home-stat-label">Kurs Saat Ini</span>
+                    <span class="home-stat-val" id="statRate">—</span>
+                </div>
+                <div class="home-stat-row">
+                    <span class="home-stat-label">Kalkulasi Terakhir</span>
+                    <span class="home-stat-val" id="statLast">—</span>
+                </div>
+            </div>
+
+            <div class="footer">
+                <span>Trading Suite</span> v2.0<br />
+                ⚠️ Trading emas mengandung risiko tinggi.
+            </div>
         </div>
-        <div class="input-group">
-          <div class="input-label">Stop Loss <span class="input-hint">dalam pips/points</span></div>
-          <div class="input-wrap">
-            <span class="input-prefix">✕</span>
-            <input type="number" id="stopLoss" placeholder="50" min="1" step="1" value="50" />
-          </div>
+
+        <!-- ═══════════════ PAGE: KALKULATOR ═══════════════ -->
+        <div class="page" id="pageCalc">
+            <div class="page-header">
+                <div class="suite-label">⚡ XAUUSD</div>
+                <h1>Lot Calculator</h1>
+                <div class="rate-badge" onclick="fetchLiveRate()" id="rateBadgeCalc">
+                    <div class="rate-dot"></div>
+                    USD/IDR : <span class="rate-value" id="rateDisplayCalc">Memuat...</span>
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path stroke-linecap="round" d="M4 4v5h5M20 20v-5h-5M4 20l7-7 7-7" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Currency -->
+            <div class="card">
+                <div class="card-title">Mata Uang Akun</div>
+                <div class="currency-toggle">
+                    <button class="currency-btn active" id="btnUSD" onclick="setCurrency('USD')">🇺🇸 USD</button>
+                    <button class="currency-btn" id="btnIDR" onclick="setCurrency('IDR')">🇮🇩 IDR – Rupiah</button>
+                </div>
+            </div>
+
+            <!-- Inputs -->
+            <div class="card">
+                <div class="card-title">Parameter Trading</div>
+                <div class="input-group">
+                    <div class="input-label">Modal Akun <span class="input-hint" id="balanceHint">dalam USD</span></div>
+                    <div class="input-wrap">
+                        <span class="input-prefix" id="balancePrefix">$</span>
+                        <input type="number" id="balance" placeholder="0.00" min="0" step="any" />
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-label">Risiko per Trade</div>
+                    <div class="risk-mode-toggle">
+                        <button class="risk-mode-btn active" id="modePercent" onclick="setRiskMode('percent')">📊
+                            Persentase (%)</button>
+                        <button class="risk-mode-btn" id="modeNominal" onclick="setRiskMode('nominal')">💸
+                            Nominal</button>
+                    </div>
+                    <div id="riskPercentSection">
+                        <div class="input-wrap">
+                            <span class="input-prefix">%</span>
+                            <input type="number" id="riskPercent" placeholder="1.0" min="0.01" max="100" step="0.1"
+                                value="1" />
+                        </div>
+                        <div class="risk-quick">
+                            <button class="risk-chip" onclick="setRisk(0.5)">0.5%</button>
+                            <button class="risk-chip active" onclick="setRisk(1)">1%</button>
+                            <button class="risk-chip" onclick="setRisk(1.5)">1.5%</button>
+                            <button class="risk-chip" onclick="setRisk(2)">2%</button>
+                            <button class="risk-chip" onclick="setRisk(3)">3%</button>
+                        </div>
+                    </div>
+                    <div id="riskNominalSection" style="display:none">
+                        <div class="input-wrap">
+                            <span class="input-prefix" id="nominalPrefix">$</span>
+                            <input type="number" id="riskNominal" placeholder="100" min="0.01" step="any" />
+                        </div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">💡 Jumlah uang yang siap
+                            hilang per trade</div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-label">Stop Loss <span class="input-hint">dalam pips/points</span></div>
+                    <div class="input-wrap">
+                        <span class="input-prefix">✕</span>
+                        <input type="number" id="stopLoss" placeholder="50" min="1" step="1" value="50" />
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom:0">
+                    <div class="input-label">Harga Entry <span class="input-hint">opsional</span></div>
+                    <div class="input-wrap">
+                        <span class="input-prefix">@</span>
+                        <input type="number" id="entryPrice" placeholder="2650.00" step="0.01" />
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-calc" id="btnCalc" onclick="calculate()">
+                <div class="btn-inner">
+                    <div class="spinner" id="spinner"></div>
+                    <span id="btnText">⚡ Hitung Lot Sekarang</span>
+                </div>
+            </button>
+
+            <div class="error-box" id="errorBox"></div>
+
+            <!-- Result -->
+            <div class="result-card" id="resultCard">
+                <div class="lot-display">
+                    <div class="lot-label">Ukuran Lot yang Disarankan</div>
+                    <div class="lot-value" id="lotDisplay">0.00</div>
+                    <div class="lot-unit">Standard Lot</div>
+                </div>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-item-label">Risiko</div>
+                        <div class="result-item-value c-red" id="riskAmountDisplay">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-item-label">Saldo (USD)</div>
+                        <div class="result-item-value c-gold" id="balanceUSDDisplay">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-item-label">Pip Value/lot</div>
+                        <div class="result-item-value" id="pipValueDisplay">$10.00/pip</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-item-label">Kurs USD/IDR</div>
+                        <div class="result-item-value c-small" id="rateResultDisplay">-</div>
+                    </div>
+                </div>
+                <div class="risk-meter">
+                    <div class="risk-meter-label"><span>Meter Risiko</span><span id="riskMeterLabel">0%</span></div>
+                    <div class="risk-bar-track">
+                        <div class="risk-bar-fill" id="riskBarFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP -->
+            <div class="tp-section card" id="tpSection">
+                <div class="card-title">Target Profit (R:R)</div>
+                <div class="rr-grid">
+                    <div class="rr-item">
+                        <div class="rr-ratio">1:1 RR</div>
+                        <div class="rr-value" id="tp1">-</div>
+                    </div>
+                    <div class="rr-item">
+                        <div class="rr-ratio">1:2 RR</div>
+                        <div class="rr-value" id="tp2">-</div>
+                    </div>
+                    <div class="rr-item">
+                        <div class="rr-ratio">1:3 RR</div>
+                        <div class="rr-value" id="tp3">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula -->
+            <div class="formula-card">
+                <div class="formula-title">ℹ️ Cara Kerja</div>
+                <div class="formula-text">
+                    XAUUSD: 1 lot = 100 oz emas &nbsp;|&nbsp; 1 pip = $0.10<br />
+                    Pip Value = 100 oz × $0.10 = <strong style="color:var(--gold)">$10 per pip per lot</strong>
+                </div>
+                <div class="formula-eq">Lot = Risiko($) ÷ (Stop Loss × $10/pip)</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+                    Contoh: 0.01 lot × 60 pips × $10 = <strong style="color:var(--green)">$6 ≈ Rp
+                        96.000–109.000</strong>
+                </div>
+            </div>
+
+            <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
         </div>
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-label">Harga Entry <span class="input-hint">opsional</span></div>
-          <div class="input-wrap">
-            <span class="input-prefix">@</span>
-            <input type="number" id="entryPrice" placeholder="2650.00" step="0.01" />
-          </div>
+
+        <!-- ═══════════════ PAGE: JURNAL ═══════════════ -->
+        <div class="page" id="pageJournal">
+            <div class="page-header">
+                <div class="suite-label">📊 Trading Suite</div>
+                <h1
+                    style="background:linear-gradient(135deg,#a5b4fc,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+                    Jurnal Trading</h1>
+            </div>
+
+            <div class="journal-launch-card">
+                <div class="journal-launch-inner">
+                    <span class="jl-icon">📊</span>
+                    <div class="jl-title">Buka Jurnal Trading</div>
+                    <div class="jl-desc">
+                        Catat semua trade Anda, pantau dashboard performa,<br />
+                        analisis win rate dan equity curve secara real-time.
+                    </div>
+                    <a class="btn-journal"
+                        href="https://script.google.com/macros/s/AKfycbzGArY0sAwdEM-3-nTWhIAPDsOY4pxnksyZwl3F6kRSIcaEqayloFh_5Xnaszlar0ff8g/exec"
+                        target="_blank" rel="noopener">
+                        🚀 Buka Jurnal Trading
+                    </a>
+                </div>
+            </div>
+
+            <div class="jl-feature-list">
+                <div class="jl-feature">
+                    <span class="jl-feature-icon">📈</span>
+                    <div class="jl-feature-text">
+                        <strong>Dashboard Performa</strong>
+                        Total trade, win rate, equity curve, profit harian &amp; bulanan
+                    </div>
+                </div>
+                <div class="jl-feature">
+                    <span class="jl-feature-icon">📋</span>
+                    <div class="jl-feature-text">
+                        <strong>Riwayat Trading</strong>
+                        Catat P/L, metode, catatan psikologi per trade
+                    </div>
+                </div>
+                <div class="jl-feature">
+                    <span class="jl-feature-icon">🎯</span>
+                    <div class="jl-feature-text">
+                        <strong>Target &amp; Limit Harian</strong>
+                        Pantau progres target profit dan batas loss setiap hari
+                    </div>
+                </div>
+                <div class="jl-feature">
+                    <span class="jl-feature-icon">💱</span>
+                    <div class="jl-feature-text">
+                        <strong>Multi Akun &amp; Konversi Cent→IDR</strong>
+                        Kelola beberapa akun, otomatis konversi mata uang
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <button class="btn-calc" id="btnCalc" onclick="calculate()">
-        <div class="btn-inner">
-          <div class="spinner" id="spinner"></div>
-          <span id="btnText">⚡ Hitung Lot Sekarang</span>
+
+        <!-- ═══════════════ PAGE: RIWAYAT ═══════════════ -->
+        <div class="page" id="pageHistory">
+            <div class="page-header" style="padding-bottom:8px">
+                <div class="suite-label">📋 Kalkulator</div>
+                <h1>Riwayat Kalkulasi</h1>
+            </div>
+
+            <div class="card" id="historyList">
+                <div class="card-title">Riwayat Transaksi</div>
+                <div class="empty-history" id="historyEmpty">📭 Belum ada riwayat tersimpan.</div>
+            </div>
+            <button class="btn-reset" style="color:var(--red)" onclick="clearHistory()">🗑️ Hapus Semua Riwayat</button>
         </div>
-      </button>
-      <div class="error-box" id="errorBox"></div>
-      <!-- Result -->
-      <div class="result-card" id="resultCard">
-        <div class="lot-display">
-          <div class="lot-label">Ukuran Lot yang Disarankan</div>
-          <div class="lot-value" id="lotDisplay">0.00</div>
-          <div class="lot-unit">Standard Lot</div>
-        </div>
-        <div class="result-grid">
-          <div class="result-item">
-            <div class="result-item-label">Risiko</div>
-            <div class="result-item-value red" id="riskAmountDisplay">-</div>
-          </div>
-          <div class="result-item">
-            <div class="result-item-label">Saldo (USD)</div>
-            <div class="result-item-value gold" id="balanceUSDDisplay">-</div>
-          </div>
-          <div class="result-item">
-            <div class="result-item-label">Pip Value/lot</div>
-            <div class="result-item-value" id="pipValueDisplay">$10.00/pip</div>
-          </div>
-          <div class="result-item">
-            <div class="result-item-label">Kurs USD/IDR</div>
-            <div class="result-item-value small" id="rateResultDisplay">-</div>
-          </div>
-        </div>
-        <div class="risk-meter">
-          <div class="risk-meter-label"><span>Meter Risiko</span><span id="riskMeterLabel">1%</span></div>
-          <div class="risk-bar-track">
-            <div class="risk-bar-fill" id="riskBarFill"></div>
-          </div>
-        </div>
-      </div>
-      <!-- TP -->
-      <div class="tp-section card" id="tpSection">
-        <div class="card-title">Target Profit (R:R)</div>
-        <div class="rr-grid">
-          <div class="rr-item">
-            <div class="rr-ratio">1:1 RR</div>
-            <div class="rr-value" id="tp1">-</div>
-          </div>
-          <div class="rr-item">
-            <div class="rr-ratio">1:2 RR</div>
-            <div class="rr-value" id="tp2">-</div>
-          </div>
-          <div class="rr-item">
-            <div class="rr-ratio">1:3 RR</div>
-            <div class="rr-value" id="tp3">-</div>
-          </div>
-        </div>
-      </div>
-      <!-- Formula -->
-      <div class="formula-card">
-        <div class="formula-title">ℹ️ Cara Kerja</div>
-        <div class="formula-text">
-          XAUUSD: 1 lot = 100 oz emas &nbsp;|&nbsp; 1 pip = $0.10<br />
-          Pip Value = 100 oz × $0.10 = <strong style="color:var(--gold)">$10 per pip per lot</strong>
-        </div>
-        <div class="formula-eq">Lot = Risiko($) ÷ (Stop Loss × $10/pip)</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
-          Contoh: 0.01 lot × 60 pips × $10 = <strong style="color:var(--green)">$6 ≈ Rp 96.000–109.000</strong>
-        </div>
-      </div>
-      <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
-    </div>
-    <!-- ═══ TAB: RIWAYAT ═══ -->
-    <div id="tabHistory" style="display:none">
-      <div class="card" id="historyList">
-        <div class="card-title">Riwayat Transaksi</div>
-        <div class="empty-history" id="historyEmpty">📭 Belum ada riwayat tersimpan.</div>
-      </div>
-      <button class="btn-reset" onclick="clearHistory()">🗑️ Hapus Semua Riwayat</button>
-    </div>
-    <div class="footer">
-      <span>Trading Suite</span> — Kalkulator &amp; Jurnal Trading<br />
-      ⚠️ Trading emas mengandung risiko tinggi.
-    </div>
-  </div><!-- /app-wrapper -->
-  <!-- BOTTOM NAVIGATION -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" id="navCalc" onclick="navTo('calc')">
-      <div class="nav-icon">🧮</div>
-      <div class="nav-label">Kalkulator</div>
-      <div class="nav-pip"></div>
-    </button>
-    <a class="nav-item journal" id="navJournal"
-      href="https://script.google.com/macros/s/AKfycbzGArY0sAwdEM-3-nTWhIAPDsOY4pxnksyZwl3F6kRSIcaEqayloFh_5Xnaszlar0ff8g/exec"
-      target="_blank" rel="noopener">
-      <div class="nav-icon">📊</div>
-      <div class="nav-label">Jurnal Trading</div>
-      <div class="nav-pip"></div>
-    </a>
-    <button class="nav-item" id="navHistory" onclick="navTo('history')">
-      <div class="nav-icon">📋</div>
-      <div class="nav-label">Riwayat</div>
-      <div class="nav-pip"></div>
-    </button>
-  </nav>
-  <script>
-    var currentCurrency = 'USD';
-    var usdIdrRate = 15900;
-    var riskMode = 'percent';
-    var lastResult = null;
-    var deferredPrompt = null;
-    var PIP_VALUE = 10; // XAUUSD: 100oz × $0.10 = $10/pip/lot
-    // ── PWA INSTALL ──
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').classList.add('show');
+
+    </div><!-- /page-container -->
+
+    <!-- ── BOTTOM NAV ── -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="navHome" onclick="navTo('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Beranda</span>
+            <span class="nav-pip"></span>
+        </button>
+        <button class="nav-item" id="navCalc" onclick="navTo('calc')">
+            <span class="nav-icon">🧮</span>
+            <span class="nav-label">Kalkulator</span>
+            <span class="nav-pip"></span>
+        </button>
+        <a class="nav-item journal" id="navJournal"
+            href="https://script.google.com/macros/s/AKfycbzGArY0sAwdEM-3-nTWhIAPDsOY4pxnksyZwl3F6kRSIcaEqayloFh_5Xnaszlar0ff8g/exec"
+            target="_blank" rel="noopener">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Jurnal</span>
+            <span class="nav-pip"></span>
+        </a>
+        <button class="nav-item" id="navHistory" onclick="navTo('history')">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Riwayat</span>
+            <span class="nav-pip"></span>
+        </button>
+    </nav>
+
+    <script>        ── STATE ──
+  var cu        urrency = 'USD';
+  v        IdrRate = 15900;
+  var riskMode = 'percent';
+  var lastResult = null;
+          deferredPrompt = null;
+             IP_VALUE = 10; // XAUUSD FIXE            oz × $0.10 = $10/pip/lot
+            ── PWA ──
+  if ('serviceWorker' in navigator)                or.serviceWorker.regist                .js').catch(function(){});
+
+  window.addEventListener('beforeinstal            t',         ti        ) {
+    e.preventDefault(); deferredPrompt = e;
+    do            .getElementById('installBanner').classList.add('show');
+  });
+  fun        n ins        PWA() {
+    if (!deferre        mpt) return;
+    deferredPrompt.prom                deferredPrompt.userChoice.then(function(){ deferredPrompt=null;         men        tElementById('installBanner        lassList.remove('show'); });
+  }            dow.addEventListener('appinstalled', function(){ document.getElementById('installBanne        cl        ist.remove('show'); });
+
+  // ── OFFLINE ──
+  function updateOnline() {
+    document.getEle        ById('offlineBanner').classList.toggle('show', !navigator        ine);
+  }
+  wi        .addEventListener('online', fu            (){ updateOnline(); fe            eRate(); });
+  wi            ddEventListener('        ine'        dateOnline);
+
+  // ─        IT ──
+  window.onload             tion() {            pdateOnline();
+    fetchLiveRate();
+    updateHomeStats();
+  };
+
+  // ── NAVIGATION ──            ction navTo(tab) {
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.r            'active'); });
+    docume            rySelectorAll('.nav-item').forEach(function(n){ n.classList.remo                ve'); });
+
+    var pageMap = {home:'pageHome', calc:'pageCalc', history:'pageHistory'};
+    v            Map             me:'navHome',  calc:'navCal            istory:'navHistory'};
+
+    if (pageMap[tab]) document.getElementById(pageMap[ta            assList.add('active');
+    if (navMap[tab])  document.getElementById(navMap[tab]).cla            .add('active');
+
+    document.querySelec        '.p        container').scrollTop = 0;
+
+    i        ab === 'history') renderHis            ;
+    if (tab === 'home')    updateHomeStats();
+  }
+
+  // ── LIVE             ─
+  function fetchLiveRate() {
+    ['rateDispla                rateDisplayCalc'].forEach(function(id){
+                  el = document.getEle                    d);
+      if (el) el.textContent =                         
     });
-    function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function () {
-        deferredPrompt = null;
-        document.getElementById('installBanner').classList.remove('show');
+    fetch('https:                        i.com/v6/latest/USD')                    en(function(r){ return r.json(); }                .th                ion(d){
+        if (d                    s && d.rates.IDR) { usdIdrRate = d.rates.IDR; updateRateDisp                             else throw new Error('no IDR');
+                            catch(function(){
+                               tps://api.frankfurter.app/latest?from=USD&to=IDR')
+          .then                            return r.json(); })
+                         en(                        
+            usdIdrRa                            ates && d.rates.IDR)                             : 15900;
+                                   ispl                            })               .catch(function(){ usdId            = 15900; updateRateDisplay(); });
       });
-    }
-    window.addEventListener('appinstalled', function () {
-      document.getElementById('installBanner').classList.remove('show');
+  }
+  function updateRateDisplay() {
+        var         = 'Rp ' + fmt        IdrRate, 0);
+    ['rateDis            me','rateDisplayCalc'].forEach(function(id){
+      var el = document.getElementById(id               if (el) el.textContent = txt;
     });
-    // ── SERVICE WORKER ──
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(function () { });
+    var sr = document.getElementById('statRate');
+             (sr) sr.textContent = txt;
+  }
+
+  // ── CURRENCY ──
+  function s                cy(cur) {
+    currentCurrency = cur;
+    document.getElementById('btnUSD').classList.toggle('            ', c            USD');
+    document.getElementById('btnI        .cl        ist.toggle('active        ur==='IDR');
+    document.ge            ntById('balancePrefix')            ontent  = cur==='USD' ? '$' : 'Rp';
+    document.getElementById('balanceHint'            Content    = cur==='USD' ? 'dalam USD' : 'dalam Rupiah';
+    document.getElem            d('nominalPrefix').textContent  = cur==='USD' ? '$' : 'Rp';
+    hideResult();
+  }
+
+            ─ RISK MODE ──
+  function setRiskMode(mode) {
+    riskMode = mode;
+    document.getElementById('mod            nt').classList.toggle('active', mode==='percent');
+    document.getElementById('mod            al').classList        gle        tive', mode==='nomi        );
+    document.getElementByI            kPercentSection')            .display = mode==='percent' ? 'block' : 'none';
+    document.getElementById('riskNomina            on').style.display = mode==='nominal' ? 'block' : 'none';
+    hideResult();
+  }
+
+  func            etRisk(val) {
+    document.getElementById('riskPercent').value = val;
+    document.querySelectorAll('            chip').forEach(function(c){
+      c.classList.toggle('active', parseFloat(c.textContent) === val);
+                }
+
+  // ── C        LAT        
+  function calculat        {
+    var errorBox = doc            getElementById('errorBox');
+    errorBox.classList.r            'show');
+    var balance = parseFloat(document.getElementById('                ).value);
+    var sl      = parseFloat(document.getElementById('s            s').        e);          if (!balance || b        ce <= 0) { showError('M            n modal akun yan            d.'); return; }
+    if (!sl || sl <= 0)           { showError('Masuk            lai Stop Loss yang valid.'); return; }
+
+    var balUSD = currentC            y==='IDR' ? balance/usdIdrRate : balance;
+    var riskUSD, riskPct;
+
+    if (riskMode===            nt') {
+      riskPct = parseFloat(document.getElementById('riskPercent').value);
+               (!riskPct || riskPct<=0 || riskPct>100) { showError('Risiko harus antara             00%.'); return; }
+                 SD = balUSD * (riskPct/100);
+                 e {
+      var nominal = parseFloat(document.getElementById('riskNomi                lue);
+      if (!nominal || nominal<=0) { showError('Masukkan nominal risiko yang valid.'); return; }
+                    D = currentCurrency==='IDR' ? nomina            drRate :                 
+      riskPct = balUSD>0 ? (riskUSD/balUSD)*100 : 0;
     }
-    // ── OFFLINE DETECTION ──
-    function updateOnlineStatus() {
-      document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
-    }
-    window.addEventListener('online', function () { updateOnlineStatus(); fetchLiveRate(); });
-    window.addEventListener('offline', updateOnlineStatus);
-    // ── INIT ──
-    window.onload = function () {
-      updateOnlineStatus();
-      fetchLiveRate();
-      renderHistory();
-    };
-    // ── BOTTOM NAV ──
-    function navTo(tab) {
-      // Tabs
-      document.getElementById('tabCalc').style.display = tab === 'calc' ? 'block' : 'none';
-      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
-      // Internal tab-bar sync
-      document.querySelectorAll('.tab-btn').forEach(function (b, i) {
-        b.classList.toggle('active', (i === 0 && tab === 'calc') || (i === 1 && tab === 'history'));
-      });
-      // Bottom nav active state
-      document.getElementById('navCalc').classList.toggle('active', tab === 'calc');
-      document.getElementById('navHistory').classList.toggle('active', tab === 'history');
-      if (tab === 'history') renderHistory();
-    }
-    // ── LIVE RATE (client-side) ──
-    function fetchLiveRate() {
-      document.getElementById('rateDisplay').textContent = 'Memuat...';
-      fetch('https://open.er-api.com/v6/latest/USD')
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          if (d && d.rates && d.rates.IDR) {
-            usdIdrRate = d.rates.IDR;
-            updateRateDisplay();
-          } else throw new Error('no IDR');
-        })
-        .catch(function () {
-          fetch('https://api.frankfurter.app/latest?from=USD&to=IDR')
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-              usdIdrRate = (d && d.rates && d.rates.IDR) ? d.rates.IDR : 15900;
-              updateRateDisplay();
-            })
-            .catch(function () {
-              usdIdrRate = 15900;
-              updateRateDisplay();
-            });
-        });
-    }
-    function updateRateDisplay() {
-      document.getElementById('rateDisplay').textContent = 'Rp ' + fmt(usdIdrRate, 0);
-    }
-    // ── TABS ──
-    function switchTab(tab) {
-      document.getElementById('tabCalc').style.display = tab === 'calc' ? 'block' : 'none';
-      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
-      document.querySelectorAll('.tab-btn').forEach(function (b, i) {
-        b.classList.toggle('active', (i === 0 && tab === 'calc') || (i === 1 && tab === 'history'));
-      });
-      if (tab === 'history') renderHistory();
-    }
-    // ── CURRENCY ──
-    function setCurrency(cur) {
-      currentCurrency = cur;
-      document.getElementById('btnUSD').classList.toggle('active', cur === 'USD');
-      document.getElementById('btnIDR').classList.toggle('active', cur === 'IDR');
-      document.getElementById('balancePrefix').textContent = cur === 'USD' ? '$' : 'Rp';
-      document.getElementById('balanceHint').textContent = cur === 'USD' ? 'dalam USD' : 'dalam Rupiah';
-      document.getElementById('nominalPrefix').textContent = cur === 'USD' ? '$' : 'Rp';
-      hideResult();
-    }
-    // ── RISK MODE ──
-    function setRiskMode(mode) {
-      riskMode = mode;
-      document.getElementById('modePercent').classList.toggle('active', mode === 'percent');
-      document.getElementById('modeNominal').classList.toggle('active', mode === 'nominal');
-      document.getElementById('riskPercentSection').style.display = mode === 'percent' ? 'block' : 'none';
-      document.getElementById('riskNominalSection').style.display = mode === 'nominal' ? 'block' : 'none';
-      hideResult();
-    }
-    // ── RISK CHIPS ──
-    function setRisk(val) {
-      document.getElementById('riskPercent').value = val;
-      document.querySelectorAll('.risk-chip').forEach(function (c) {
-        c.classList.toggle('active', parseFloat(c.textContent) === val);
-      });
-    }
-    // ── CALCULATE ──
-    function calculate() {
-      hideMessages();
-      var balance = parseFloat(document.getElementById('balance').value);
-      var sl = parseFloat(document.getElementById('stopLoss').value);
-      if (!balance || balance <= 0) { showError('Masukkan modal akun yang valid.'); return; }
-      if (!sl || sl <= 0) { showError('Masukkan nilai Stop Loss yang valid.'); return; }
-      var balUSD = currentCurrency === 'IDR' ? balance / usdIdrRate : balance;
-      var riskUSD, riskPct;
-      if (riskMode === 'percent') {
-        riskPct = parseFloat(document.getElementById('riskPercent').value);
-        if (!riskPct || riskPct <= 0 || riskPct > 100) { showError('Risiko harus antara 0.01 – 100%.'); return; }
-        riskUSD = balUSD * (riskPct / 100);
-      } else {
-        var nominal = parseFloat(document.getElementById('riskNominal').value);
-        if (!nominal || nominal <= 0) { showError('Masukkan nominal risiko yang valid.'); return; }
-        riskUSD = currentCurrency === 'IDR' ? nominal / usdIdrRate : nominal;
-        riskPct = balUSD > 0 ? (riskUSD / balUSD) * 100 : 0;
-      }
-      var lot = Math.floor((riskUSD / (sl * PIP_VALUE)) * 100) / 100;
-      var result = {
-        lotSize: lot,
-        riskAmountUSD: riskUSD.toFixed(2),
-        riskAmountDisplay: currentCurrency === 'IDR' ? riskUSD * usdIdrRate : riskUSD,
-        pipValuePerLot: currentCurrency === 'IDR' ? PIP_VALUE * usdIdrRate : PIP_VALUE,
-        balanceUSD: balUSD.toFixed(2),
-        currency: currentCurrency,
-        usdIdrRate: usdIdrRate
-      };
-      lastResult = result;
-      displayResult(result, riskPct);
-      // Simpan ke localStorage
-      saveToHistory({
-        balance: balance, currency: currentCurrency,
-        riskPct: riskPct.toFixed(2), sl: sl,
-        lot: lot, riskUSD: parseFloat(riskUSD.toFixed(2)),
-        rate: Math.round(usdIdrRate)
-      });
-    }
-    function displayResult(res, riskPct) {
-      document.getElementById('lotDisplay').textContent = res.lotSize.toFixed(2);
-      var riskStr = res.currency === 'IDR'
-        ? 'Rp ' + fmt(res.riskAmountDisplay, 0)
-        : '$ ' + fmt(parseFloat(res.riskAmountUSD), 2);
-      document.getElementById('riskAmountDisplay').textContent = riskStr;
-      document.getElementById('balanceUSDDisplay').textContent = '$ ' + fmt(parseFloat(res.balanceUSD), 2);
-      var pipStr = res.currency === 'IDR'
-        ? 'Rp ' + fmt(res.pipValuePerLot, 0) + '/pip'
-        : '$ ' + parseFloat(res.pipValuePerLot).toFixed(2) + '/pip';
-      document.getElementById('pipValueDisplay').textContent = pipStr;
-      document.getElementById('rateResultDisplay').textContent = 'Rp ' + fmt(res.usdIdrRate, 0);
-      var meterPct = Math.min((riskPct / 5) * 100, 100);
-      document.getElementById('riskBarFill').style.width = meterPct + '%';
-      document.getElementById('riskMeterLabel').textContent = parseFloat(riskPct).toFixed(2) + '%';
-      document.getElementById('resultCard').classList.add('show');
-      document.getElementById('tp1').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 1);
-      document.getElementById('tp2').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 2);
-      document.getElementById('tp3').textContent = '+' + formatRisk(res.riskAmountUSD, res.currency, usdIdrRate, 3);
-      document.getElementById('tpSection').classList.add('show');
-      setTimeout(function () { document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-    }
-    // ── HISTORY (localStorage) ──
-    function saveToHistory(data) {
-      var now = new Date();
-      var dateStr = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' ' +
-        ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-      data.date = dateStr;
-      var history = getHistory();
-      history.unshift(data); // terbaru di atas
-      if (history.length > 50) history = history.slice(0, 50); // max 50 entri
-      localStorage.setItem('xauusd_history', JSON.stringify(history));
-    }
-    function getHistory() {
-      try { return JSON.parse(localStorage.getItem('xauusd_history')) || []; }
-      catch (e) { return []; }
-    }
-    function renderHistory() {
-      var list = document.getElementById('historyList');
-      var title = list.querySelector('.card-title');
-      var empty = document.getElementById('historyEmpty');
-      // Remove old items
-      list.querySelectorAll('.history-item').forEach(function (el) { el.remove(); });
-      var history = getHistory();
-      if (history.length === 0) { empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-      history.forEach(function (row) {
-        var div = document.createElement('div');
-        div.className = 'history-item';
-        var cur = row.currency || 'USD';
-        var bal = cur === 'IDR' ? 'Rp ' + fmt(row.balance, 0) : '$' + fmt(row.balance, 2);
-        div.innerHTML =
-          '<div class="h-row"><span class="h-date">' + row.date + '</span><span class="h-cur">' + cur + '</span></div>' +
-          '<div class="h-lot">' + parseFloat(row.lot).toFixed(2) + ' <span style="font-size:14px;font-weight:600;color:var(--gold-dark)">lot</span></div>' +
-          '<div class="h-info">Modal: ' + bal + ' &nbsp;|&nbsp; Risk: ' + row.riskPct + '% &nbsp;|&nbsp; SL: ' + row.sl + ' pips</div>';
-        list.appendChild(div);
-      });
-    }
-    function clearHistory() {
-      if (!confirm('Hapus semua riwayat?')) return;
-      localStorage.removeItem('xauusd_history');
-      renderHistory();
-    }
-    // ── HELPERS ──
-    function showError(msg) {
-      var e = document.getElementById('errorBox');
-      e.textContent = '⚠️ ' + msg; e.classList.add('show');
-    }
-    function hideMessages() {
-      document.getElementById('errorBox').classList.remove('show');
-    }
-    function hideResult() {
-      document.getElementById('resultCard').classList.remove('show');
-      document.getElementById('tpSection').classList.remove('show');
-      hideMessages();
-    }
-    function resetForm() {
-      document.getElementById('balance').value = '';
-      document.getElementById('riskPercent').value = '1';
-      document.getElementById('riskNominal').value = '';
-      document.getElementById('stopLoss').value = '50';
-      document.getElementById('entryPrice').value = '';
-      lastResult = null;
-      setRiskMode('percent');
-      hideResult();
-      document.querySelectorAll('.risk-chip').forEach(function (c) {
-        c.classList.toggle('active', c.textContent === '1%');
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    function fmt(num, dec) {
-      if (dec === 0) return new Intl.NumberFormat('id-ID').format(Math.round(num));
-      return parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    }
-    function formatRisk(riskUSD, cur, rate, mult) {
-      var val = parseFloat(riskUSD) * mult;
-      return cur === 'IDR' ? 'Rp ' + fmt(val * rate, 0) : '$' + fmt(val, 2);
-    }
-  </script>
+
+    // Hitu                XAUUSD pip value selalu $10/pip/lot)
+    var lot = Math.floor((riskUSD/(sl*PIP_VALUE))*100)/                  var result = {
+      lotSize:           lot,
+      riskAmountUSD:                   D.toFixed(2),
+      riskAmountDisplay: currentCurrenc            DR'            kUSD*usdIdrRate : riskUSD,
+      pipValuePerLot:    currentCurren            IDR' ? PIP_VALU                Rate : PIP_VAL                  balanceUSD:        balUSD.toFixed                   currency:          currentCurrency,
+      usdIdrRate:        usdIdrRate
+                    astResult = result;
+    displayResult(result, riskPct);
+
+    // Simpan ke localS                   saveToHistory({
+      balanc                e, currency:currentCurrency                riskPct:riskPct.toFixed            l:sl              lot:lot, riskUSD:pa            at(riskUSD.toFixed(2)),
+      rat            .round(usdIdrRate),
+                  ew Date().toLoca                ('id-ID',{hour12:false})
+    });
+    updateHo                );
+  }
+
+  function displayResult(res,                ) {
+    document.getElementById('lotDisplay').textC                 res.lotSize.toFixed(2);
+
+               iskS         re        rrency==='IDR'
+      ? 'Rp '+fmt(res.ri            ntDisplay,0) : '$ '+fmt(parseFloat(res.riskAmountUSD),2);
+    document.getEle            Id('riskAmountDisplay').textContent =                ;
+    document.getElementById('balanceUS                ').textContent = '$ '+fmt(parseFloat(res.balance            );
+
+    var pipStr = res.currency==='IDR'
+      ? 'Rp '+fmt(res.pipV            rLot,0)+'/pip'
+      : '$ '+parseFloat(res.pipValuePerLot).toFixed(2)+'/pip';
+    document.getElementBy            pValueDisplay').textContent = pipStr                cument.getElementById('rateResultDisplay').tex                 = 'Rp '+fmt(res.usdIdrRate,0);
+
+    var meterPct = Math.min(            ct/5)*100,100);
+    document.getElementById('riskBarFill').style.            = meterPct+'%';
+    document.getElementById('riskMeterLabel').textContent = parseFloat(riskP            Fixed(2)+'%';
+
+    document.getElementById('resultC            classList.add('show');
+
+    document.getElementById('tp1').textConten            '+fmtRisk(res.riskAmountUSD,res.currency,usdIdrRate,1);
+    document.getElementById('tp2').text            t = '+'+fmtRisk(res.riskAmountUSD,res.currency,usdIdrRate,2);
+            cument.getElementById('tp3').textContent = '+'+fmtRisk(res.riskAmountUSD,res.currency,usdIdrRate,3);
+    docume            ElementById('tpSection').classList.add('show');
+
+    setTimeout(function(){ document.getElementById('resultCard            ollIntoView({behavior:'smooth',block:'start'}); },100);
+  }
+
+  function hideResult() {
+    document.getElementB            esultCard').classList.remove('show');
+    document.getElement            tpSection').classList.remove('show');
+    document.getElementById('errorBox').classList.remove('show');
+  }
+
+  function resetFor        {
+         ocument.getElementById('balance'        lue='';
+    document.getElement            riskPercent').value='1             document.getElementById('riskNominal').value='';
+    document.getElementById('stopLoss').value='50';
+    document.getElementBy                yPrice').value='';
+    lastResult=null;
+    setRiskMode('percent');
+    hideR            );
+    document.query            orAll('.risk-chip').forEach(            on(c){
+      c.classList.toggle('active',             Content==='1%');
+    });
+    document.querySelector('.page-container').sc            p = 0;
+  }
+
+  // ── HISTORY (localStorage) ──
+  function saveToHi        y(d         {
+    var h = getHistor               h.unshift(data);
+    if (h.length>50) h=h.slice(0,50);
+    localStorag            tem('xauusd_calc_history'        ON.        ngify(h));
+  }
+  function g            ory() {
+    try { return JSON.parse(localStorage.ge            'xauusd_calc_history'))||[]; }
+    catch(e){ re            ]; }
+  }
+  function renderHistory() {
+    var list =             nt.getElementById('h            List');
+    var empty = document.getElementById('historyEmpty');
+    list.querySe            All('.history-item').forEach            ion(el){ el.remove(); });
+    var history = getHistory();
+    if (!hi            length) { empty.style.display='            ; return; }
+    empty.style.displ                ';
+    history.forEach(function(row){
+                   iv = document.createElement('div                  div.className = 'history-item';                ar cur = row.currency||'USD';
+      var bal = cur==='IDR' ? 'Rp '+fmt(row.balance,0                fmt(row.balance,                    div.innerHTML =
+        '<div class="h-row"><span class="h-date">'+row.date+'</span><span class="h-cur">'+cur+'<                    v>'+
+        '<div class="h-lot">'+parseFloat(row.lot).toFixed(2)+' <span style="font-size:14px;font-weight:600;color:var(--gold-dark)">lot</span><                          '<div class="h-info">Modal: '+bal+' &nbsp;|&nbsp; Risk: '+row.riskPct+'% &nbsp;|&nbsp; SL: '+row.sl+' pips</div>';
+                      endChild(div);
+    });
+            func         cl        istory() {
+    if (!confir            us semua riwayat?')) return;
+    localStorage.            Item('xauusd_calc_history');
+    renderHist            
+    updateHomeSt        );
+        
+  // ── HOME STA        ─
+  function updateHomeSta            
+    var h = getHistory();
+    var st = docum            tElementById('statTotal');
+    var sl = document.getEl        tB        'statLast');
+    if (st) s            Content = h.length;
+    if (sl) sl.textContent = h.length>0 ?         .l        oFixed(2)+' lot' : '—';
+            dateRateDisplay();
+  }
+
+  // ── HELPERS ──
+  function showError(            
+    var e = document.getElementById('errorBox');
+    e.textCon            ⚠️ '+msg; e.clas        t.        'show');
+  }
+  function            um, dec) {
+    if (dec===0) return new Intl.Num            mat('id-ID').format(Math.round(num));
+    return par            t(num).toLocaleString('en-US',{minimumFractionDigit            maximumFractionDigits:dec});
+  }
+  function fmtRis            USD, cur, rate, mult) {
+    var val = parseFloat(r            )*mult;
+    return             'IDR' ? 'Rp '+fmt(val*ra            : '$'+fmt(val,2);
+  }
+    </script>
 </body>
+
 </html>
