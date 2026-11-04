@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>XAUUSD Lot Calculator</title>
+  <title>Trading Suite — Kalkulator & Jurnal</title>
   <meta name="description"
-    content="Kalkulator ukuran lot trading emas XAUUSD dengan kurs USD/IDR live. Support USD & Rupiah." />
+    content="Kalkulator lot XAUUSD & Jurnal Trading dalam satu aplikasi. Support USD & IDR dengan kurs live." />
   <meta name="theme-color" content="#F5C842" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -79,13 +79,111 @@
       z-index: 1;
       max-width: 430px;
       margin: 0 auto;
-      padding: 0 0 50px
+      padding: 0 0 100px
+        /* ruang untuk bottom nav */
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: rgba(10, 10, 18, 0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(245, 200, 66, 0.12);
+      display: flex;
+      z-index: 100;
+      padding: 0 8px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px 12px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      gap: 4px;
+      transition: all .2s;
+      text-decoration: none;
+    }
+
+    .nav-item:hover .nav-label {
+      color: var(--gold);
+    }
+
+    .nav-icon {
+      font-size: 22px;
+      line-height: 1;
+      transition: transform .2s;
+    }
+
+    .nav-item.active .nav-icon {
+      transform: scale(1.15);
+    }
+
+    .nav-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: .4px;
+      transition: color .2s;
+    }
+
+    .nav-item.active .nav-label {
+      color: var(--gold);
+    }
+
+    .nav-pip {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 2px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .nav-item.active .nav-pip {
+      opacity: 1;
+    }
+
+    /* Journal nav item special glow */
+    .nav-item.journal .nav-icon {
+      filter: drop-shadow(0 0 6px rgba(79, 159, 255, 0.6));
+    }
+
+    .nav-item.journal .nav-label {
+      color: var(--blue);
+    }
+
+    .nav-item.journal .nav-pip {
+      background: var(--blue);
+      opacity: 1;
     }
 
     /* HEADER */
     .header {
-      padding: 48px 20px 20px;
+      padding: 32px 20px 16px;
       text-align: center
+    }
+
+    .header-suite-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
     }
 
     .header h1 {
@@ -818,7 +916,8 @@
 
     <!-- HEADER -->
     <div class="header">
-      <h1>XAUUSD<br />Lot Calculator</h1>
+      <div class="header-suite-label">⚡ Trading Suite</div>
+      <h1>Kalkulator &amp; Jurnal</h1>
       <div class="rate-badge" onclick="fetchLiveRate()" id="rateBadge">
         <div class="rate-dot"></div>
         USD/IDR : <span class="rate-value" id="rateDisplay">Memuat...</span>
@@ -996,10 +1095,32 @@
     </div>
 
     <div class="footer">
-      <span>XAUUSD Lot Calculator</span><br />
+      <span>Trading Suite</span> — Kalkulator &amp; Jurnal Trading<br />
       ⚠️ Trading emas mengandung risiko tinggi.
     </div>
-  </div>
+
+  </div><!-- /app-wrapper -->
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="navCalc" onclick="navTo('calc')">
+      <div class="nav-icon">🧮</div>
+      <div class="nav-label">Kalkulator</div>
+      <div class="nav-pip"></div>
+    </button>
+    <a class="nav-item journal" id="navJournal"
+      href="https://script.google.com/macros/s/AKfycbyZeycQErZdBr4852lvEgnsTVRaQGdxY3-ISfUjZmigJX_TcQ745NCX2c1UonY7bQeh/exec"
+      target="_blank" rel="noopener">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Jurnal Trading</div>
+      <div class="nav-pip"></div>
+    </a>
+    <button class="nav-item" id="navHistory" onclick="navTo('history')">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">Riwayat</div>
+      <div class="nav-pip"></div>
+    </button>
+  </nav>
 
   <script>
     var currentCurrency = 'USD';
@@ -1045,6 +1166,21 @@
       fetchLiveRate();
       renderHistory();
     };
+
+    // ── BOTTOM NAV ──
+    function navTo(tab) {
+      // Tabs
+      document.getElementById('tabCalc').style.display = tab === 'calc' ? 'block' : 'none';
+      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
+      // Internal tab-bar sync
+      document.querySelectorAll('.tab-btn').forEach(function (b, i) {
+        b.classList.toggle('active', (i === 0 && tab === 'calc') || (i === 1 && tab === 'history'));
+      });
+      // Bottom nav active state
+      document.getElementById('navCalc').classList.toggle('active', tab === 'calc');
+      document.getElementById('navHistory').classList.toggle('active', tab === 'history');
+      if (tab === 'history') renderHistory();
+    }
 
     // ── LIVE RATE (client-side) ──
     function fetchLiveRate() {

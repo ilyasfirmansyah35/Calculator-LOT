@@ -1,7 +1,7 @@
 {
-  "name": "XAUUSD Lot Calculator",
-  "short_name": "XAU Calc",
-  "description": "Kalkulator ukuran lot trading emas XAUUSD dengan kurs USD/IDR live",
+  "name": "Trading Suite — Kalkulator & Jurnal",
+  "short_name": "Trading Suite",
+  "description": "Kalkulator lot XAUUSD & Jurnal Trading dalam satu aplikasi. Support USD & IDR dengan kurs live",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
